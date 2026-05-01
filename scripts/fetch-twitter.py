@@ -3,15 +3,16 @@
 Fetch Twitter/X posts from KOL accounts using X API.
 
 Reads sources.json, filters Twitter sources, fetches recent posts using
-either the official X API v2 or twitterapi.io, and outputs structured JSON.
+either the official X API v2, twitterapi.io, GetXAPI, or Jina Reader, and outputs structured JSON.
 
 Usage:
     python3 fetch-twitter.py [--config CONFIG_DIR] [--hours 48] [--output FILE] [--verbose]
     python3 fetch-twitter.py --backend twitterapiio  # force twitterapi.io backend
+    python3 fetch-twitter.py --backend jina          # free Jina Reader backend (no key)
 
 Environment:
-    TWITTER_API_BACKEND - Backend selection: "auto" (default), "getxapi", "twitterapiio", or "official"
-                        Auto priority: getxapi ($0.001/call) > twitterapi.io (~$5/mo) > official X API
+    TWITTER_API_BACKEND - Backend selection: "auto" (default), "getxapi", "twitterapiio", "official", or "jina"
+                        Auto priority: getxapi ($0.001/call) > twitterapi.io (~$5/mo) > official X API > jina (free)
     GETX_API_KEY        - GetXAPI API key (preferred backend, $0.001 per call)
     TWITTERAPI_IO_KEY   - twitterapi.io API key (alternative backend, ~$5/month)
     X_BEARER_TOKEN      - Twitter/X official API v2 bearer token (fallback)
@@ -493,6 +494,305 @@ class TwitterApiIoBackend(TwitterBackend):
         return results
 
 
+# ---------------------------------------------------------------------------
+# Jina Reader backend (free, no API key needed)
+# ---------------------------------------------------------------------------
+
+JINA_READER_BASE = "https://r.jina.ai"
+
+
+class JinaReaderBackend(TwitterBackend):
+    """Jina Reader backend – scrapes X profile pages via r.jina.ai.
+
+    Free tier, no API key required. Rate-limited to ~1 qps.
+    Returns parsed plain-text from the user's X profile page.
+    """
+
+    def __init__(self):
+        self._semaphore = threading.Semaphore(1)  # enforce 1 qps
+        self._last_request_time = 0.0
+        self._lock = threading.Lock()
+        self.logger = logging.getLogger("fetch-twitter.jina")
+
+    def _throttle(self):
+        """Ensure at least 1 second between requests."""
+        with self._lock:
+            now = time.monotonic()
+            wait_time = 1.0 - (now - self._last_request_time)
+            if wait_time > 0:
+                time.sleep(wait_time)
+            self._last_request_time = time.monotonic()
+
+    @staticmethod
+    def _parse_jina_date(date_str: str) -> Optional[datetime]:
+        """Parse various date formats that Jina Reader may return.
+
+        Common formats seen in Jina output for X pages:
+        - 'Dec 10, 2024 · 12:34 PM' (X profile page format)
+        - '2024-12-10T12:34:56.000Z' (ISO with millis)
+        - 'Dec 10, 2024' (date only)
+        - '10 Dec 2024' (alternative)
+        - Relative dates: '2h', '5m', '1d', '3h ago'
+        """
+        date_str = date_str.strip()
+        if not date_str:
+            return None
+
+        # Handle relative time patterns (e.g., "2h", "5m", "1d", "3h ago")
+        rel_match = re.match(r'^(\d+)\s*([smhd])\s*(?:ago)?$', date_str.lower())
+        if rel_match:
+            amount = int(rel_match.group(1))
+            unit = rel_match.group(2)
+            now = datetime.now(timezone.utc)
+            deltas = {'s': timedelta(seconds=amount),
+                      'm': timedelta(minutes=amount),
+                      'h': timedelta(hours=amount),
+                      'd': timedelta(days=amount)}
+            return now - deltas.get(unit, timedelta())
+
+        # Handle "X hours ago" / "X minutes ago" patterns
+        rel_match2 = re.match(r'^(\d+)\s+(second|minute|hour|day|week)s?\s+ago$', date_str.lower())
+        if rel_match2:
+            amount = int(rel_match2.group(1))
+            unit = rel_match2.group(2)
+            now = datetime.now(timezone.utc)
+            deltas = {
+                'second': timedelta(seconds=amount),
+                'minute': timedelta(minutes=amount),
+                'hour': timedelta(hours=amount),
+                'day': timedelta(days=amount),
+                'week': timedelta(weeks=amount),
+            }
+            return now - deltas.get(unit, timedelta())
+
+        # Remove the middle dot separator and extra text after timezone
+        date_str = re.sub(r'\s*[·|]\s*.*$', '', date_str).strip()
+
+        formats = [
+            "%b %d, %Y",                    # Dec 10, 2024
+            "%B %d, %Y",                    # December 10, 2024
+            "%d %b %Y",                     # 10 Dec 2024
+            "%Y-%m-%dT%H:%M:%S.%fZ",       # 2024-12-10T12:34:56.000Z
+            "%Y-%m-%dT%H:%M:%S%z",          # ISO 8601
+            "%Y-%m-%dT%H:%M:%SZ",           # ISO without tz
+            "%Y-%m-%d %H:%M:%S",            # Simple datetime
+            "%Y-%m-%d",                     # Date only
+        ]
+
+        for fmt in formats:
+            try:
+                dt = datetime.strptime(date_str, fmt)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                return dt
+            except (ValueError, TypeError):
+                continue
+
+        return None
+
+    def _parse_jina_text(self, text: str, handle: str, topics: list,
+                         cutoff: datetime) -> list:
+        """Parse Jina Reader plain-text output into article dicts.
+
+        The text typically contains tweet blocks separated by horizontal
+        rules or blank lines.  We look for date-like patterns to delimit
+        individual tweets.
+        """
+        articles = []
+
+        # Split the text into chunks that look like individual tweets.
+        # Jina output for X profiles typically has tweet text followed by
+        # date/metadata.  We split on common delimiters.
+        # Pattern: look for date-like lines to split tweets
+        # Common patterns in Jina X output:
+        #   "Dec 10, 2024" or "2h" or full ISO dates
+        date_pattern = re.compile(
+            r'(?:'
+            r'\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}'  # ISO date
+            r'|'
+            r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4}'  # Month DD, YYYY
+            r'|'
+            r'\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}'  # DD Mon YYYY
+            r'|'
+            r'\d+[hmsd]\s*(?:ago)?'  # relative: 2h, 5m, 1d
+            r'|'
+            r'\d+\s+(?:second|minute|hour|day|week)s?\s+ago'  # 2 hours ago
+            r')',
+            re.IGNORECASE
+        )
+
+        # Also look for tweet URLs to extract tweet IDs
+        tweet_url_pattern = re.compile(
+            r'https?://(?:x\.com|twitter\.com)/\w+/status/(\d+)'
+        )
+
+        # Split text into blocks by double newlines or horizontal rules
+        blocks = re.split(r'\n-{3,}\n|\n\n+', text)
+
+        for block in blocks:
+            block = block.strip()
+            if not block or len(block) < 10:
+                continue
+
+            # Skip navigation/header blocks
+            if any(skip in block.lower() for skip in [
+                'sign in', 'log in', 'join today', 'cookies',
+                'twitter', 'x.com home', 'search', 'footer',
+                'javascript is disabled'
+            ]):
+                continue
+
+            # Try to find a date in the block
+            date_match = date_pattern.search(block)
+            if not date_match:
+                continue
+
+            date_str = date_match.group(0)
+            created_at = self._parse_jina_date(date_str)
+            if not created_at:
+                continue
+
+            # Check cutoff
+            if created_at < cutoff:
+                continue
+
+            # Extract tweet text (everything that's not metadata)
+            # Remove date line and common metadata lines
+            lines = block.split('\n')
+            content_lines = []
+            for line in lines:
+                stripped = line.strip()
+                # Skip lines that are purely metadata
+                if re.match(r'^\d+[\.,]?\d*[kKmMbB]?(\s*(likes?|reposts?|replies?|views?|bookmarks?|shares?))', stripped, re.IGNORECASE):
+                    continue
+                if re.match(r'^(likes?|reposts?|replies?|views?|bookmarks?|shares?):?\s*\d+', stripped, re.IGNORECASE):
+                    continue
+                if date_pattern.fullmatch(stripped):
+                    continue
+                if tweet_url_pattern.fullmatch(stripped):
+                    continue
+                if stripped.startswith('http://') or stripped.startswith('https://'):
+                    # Keep URLs that are part of tweet content but not tweet permalinks
+                    if re.match(r'https?://(?:x\.com|twitter\.com)/\w+/status/\d+', stripped):
+                        continue
+                if not stripped:
+                    continue
+                content_lines.append(stripped)
+
+            tweet_text = ' '.join(content_lines).strip()
+            if not tweet_text or len(tweet_text) < 5:
+                continue
+
+            # Skip retweets
+            if tweet_text.startswith('RT @'):
+                continue
+
+            # Try to extract tweet ID from URL in block
+            tweet_id_match = tweet_url_pattern.search(block)
+            tweet_id = tweet_id_match.group(1) if tweet_id_match else None
+
+            # Build link
+            if tweet_id:
+                link = f"https://x.com/{handle}/status/{tweet_id}"
+            else:
+                link = f"https://x.com/{handle}"
+
+            articles.append({
+                "title": clean_tweet_text(tweet_text),
+                "link": link,
+                "date": created_at.isoformat(),
+                "topics": topics[:],
+                "metrics": {},  # Jina Reader doesn't provide structured metrics
+                "tweet_id": tweet_id or "",
+            })
+
+        # Deduplicate by tweet_id if available, else by title similarity
+        seen_ids = set()
+        seen_titles = set()
+        unique = []
+        for a in articles:
+            tid = a.get("tweet_id", "")
+            title_key = a["title"][:80].lower()
+            if tid:
+                if tid in seen_ids:
+                    continue
+                seen_ids.add(tid)
+            else:
+                if title_key in seen_titles:
+                    continue
+                seen_titles.add(title_key)
+            unique.append(a)
+
+        return unique
+
+    def _fetch_user_tweets(self, source: Dict[str, Any],
+                           cutoff: datetime) -> Dict[str, Any]:
+        handle = source["handle"].lstrip('@')
+        topics = source["topics"]
+
+        for attempt in range(RETRY_COUNT + 1):
+            try:
+                url = f"{JINA_READER_BASE}/https://x.com/{handle}"
+                headers = {
+                    "Accept": "text/plain",
+                    "User-Agent": "TechDigest/2.0",
+                }
+
+                self._throttle()
+
+                req = Request(url, headers=headers)
+                with urlopen(req, timeout=TIMEOUT) as resp:
+                    raw_text = resp.read().decode('utf-8', errors='replace')
+
+                if not raw_text or len(raw_text) < 50:
+                    return self._make_error(source, "Empty response from Jina Reader", attempt)
+
+                articles = self._parse_jina_text(raw_text, handle, topics, cutoff)
+
+                if not articles:
+                    logging.debug(f"@{handle}: Jina returned text but no parseable tweets")
+
+                return self._make_result(source, articles, attempt)
+
+            except HTTPError as e:
+                if e.code == 429:
+                    error_msg = "Rate limit exceeded"
+                    logging.warning(f"Jina rate limit for @{handle}, attempt {attempt + 1}")
+                    if attempt < RETRY_COUNT:
+                        time.sleep(5)
+                        continue
+                elif e.code == 404:
+                    error_msg = f"User not found: @{handle}"
+                else:
+                    error_msg = f"HTTP {e.code}: {e.reason}"
+
+            except Exception as e:
+                error_msg = str(e)[:100]
+                logging.debug(f"Jina attempt {attempt + 1} failed for @{handle}: {error_msg}")
+
+            if attempt < RETRY_COUNT:
+                time.sleep(RETRY_DELAY * (2 ** attempt))
+                continue
+
+            return self._make_error(source, error_msg, attempt)
+
+    def fetch_all(self, sources: List[Dict[str, Any]],
+                  cutoff: datetime) -> List[Dict[str, Any]]:
+        """Sequential fetch – Jina Reader is limited to ~1 qps."""
+        results: List[Dict[str, Any]] = []
+        total = len(sources)
+
+        for i, source in enumerate(sources):
+            result = self._fetch_user_tweets(source, cutoff)
+            results.append(result)
+            done = i + 1
+            if result["status"] == "ok":
+                logging.info(f"[{done}/{total}] ✅ @{result['handle']}: {result['count']} tweets (jina)")
+            else:
+                logging.warning(f"[{done}/{total}] ❌ @{result['handle']}: {result.get('error', 'unknown')} (jina)")
+
+        return results
+
 class GetXApiBackend(TwitterBackend):
     """GetXAPI backend."""
 
@@ -695,6 +995,10 @@ def select_backend(backend_name: str, no_cache: bool = False) -> Optional[Twitte
         logging.info("Using official X API v2 backend")
         return OfficialBackend(token, no_cache=no_cache)
 
+    if backend_name == "jina":
+        logging.info("Using Jina Reader backend (free, no API key)")
+        return JinaReaderBackend()
+
     # auto: try getxapi first, then twitterapiio, then official
     if backend_name == "auto":
         getx_key = os.getenv("GETX_API_KEY")
@@ -709,8 +1013,9 @@ def select_backend(backend_name: str, no_cache: bool = False) -> Optional[Twitte
         if token:
             logging.info("Auto-selected official X API v2 backend (X_BEARER_TOKEN set)")
             return OfficialBackend(token, no_cache=no_cache)
-        logging.warning("No Twitter API credentials found (checked GETX_API_KEY, TWITTERAPI_IO_KEY, X_BEARER_TOKEN)")
-        return None
+        # Fallback: Jina Reader (free, no API key needed)
+        logging.info("Auto-selected Jina Reader backend (no API keys found, free fallback)")
+        return JinaReaderBackend()
 
     logging.error(f"Unknown backend: {backend_name}")
     return None
@@ -812,10 +1117,11 @@ Examples:
 
     parser.add_argument(
         "--backend",
-        choices=["official", "twitterapiio", "getxapi", "auto"],
+        choices=["official", "twitterapiio", "getxapi", "jina", "auto"],
         default=None,
         help="Twitter API backend (overrides TWITTER_API_BACKEND env var). "
-             "auto = getxapi if GETX_API_KEY set, else twitterapiio if TWITTERAPI_IO_KEY set, else official if X_BEARER_TOKEN set"
+             "auto = getxapi if GETX_API_KEY set, else twitterapiio if TWITTERAPI_IO_KEY set, "
+             "else official if X_BEARER_TOKEN set, else jina (free)"
     )
 
     args = parser.parse_args()
