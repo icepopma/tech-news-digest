@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 SCRIPTS_DIR = Path(__file__).parent
-DEFAULT_TIMEOUT = 180  # per-step timeout in seconds
+DEFAULT_TIMEOUT = 360  # per-step timeout in seconds (Jina Twitter needs ~3-4min for 96 accounts)
 
 
 def setup_logging(verbose: bool) -> logging.Logger:
