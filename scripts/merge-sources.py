@@ -616,6 +616,7 @@ Examples:
                     "date": repo.get("pushed_at", ""),
                     "source": "github-trending",
                     "source_type": "github_trending",
+                    "source_name": repo.get("repo", "GitHub Trending"),
                     "topics": repo.get("topics", []),
                     "stars": repo.get("stars", 0),
                     "daily_stars_est": repo.get("daily_stars_est", 0),
