@@ -1,7 +1,7 @@
 {
   "_description": "Unified data sources configuration. RSS feeds, Twitter/X KOLs, and web search sources. Each source binds to topics and has enabled/priority fields.",
-  "_updated": "2025-06-02",
-  "_version": "2.5.0",
+  "_updated": "2026-05-03",
+  "_version": "3.0.0",
   "sources": [
     {
       "id": "simonwillison-rss",
@@ -557,43 +557,6 @@
       "note": "Hugging Face official"
     },
     {
-      "id": "langchain-twitter",
-      "type": "twitter",
-      "name": "LangChain official",
-      "handle": "LangChain",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "ai-agent"
-      ],
-      "note": "LangChain official"
-    },
-    {
-      "id": "llamaindex-twitter",
-      "type": "twitter",
-      "name": "LlamaIndex official",
-      "handle": "llama_index",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "ai-agent"
-      ],
-      "note": "LlamaIndex official"
-    },
-    {
-      "id": "emad-twitter",
-      "type": "twitter",
-      "name": "Emad Mostaque",
-      "handle": "EMostaque",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "llm",
-        "frontier-tech"
-      ],
-      "note": "Stability AI"
-    },
-    {
       "id": "sebastian-twitter",
       "type": "twitter",
       "name": "Sebastian Raschka",
@@ -655,18 +618,6 @@
       "note": "MicroStrategy"
     },
     {
-      "id": "pomp-twitter",
-      "type": "twitter",
-      "name": "Anthony Pompliano",
-      "handle": "APompliano",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "crypto"
-      ],
-      "note": "Crypto influencer"
-    },
-    {
       "id": "zachxbt-twitter",
       "type": "twitter",
       "name": "ZachXBT",
@@ -689,103 +640,6 @@
         "crypto"
       ],
       "note": "吴说区块链"
-    },
-    {
-      "id": "discus-twitter",
-      "type": "twitter",
-      "name": "神鱼 DiscusFish",
-      "handle": "bitfish",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "crypto"
-      ],
-      "note": "F2Pool/Cobo co-founder"
-    },
-    {
-      "id": "mindao-twitter",
-      "type": "twitter",
-      "name": "Mindao",
-      "handle": "mindaoyang",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "crypto"
-      ],
-      "note": "dForce founder"
-    },
-    {
-      "id": "herbert-twitter",
-      "type": "twitter",
-      "name": "Herbert",
-      "handle": "herbertcrypto",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "crypto"
-      ],
-      "note": "PANews founder"
-    },
-    {
-      "id": "elon-twitter",
-      "type": "twitter",
-      "name": "Elon Musk",
-      "handle": "elonmusk",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "frontier-tech"
-      ],
-      "note": "Entrepreneur"
-    },
-    {
-      "id": "sundar-twitter",
-      "type": "twitter",
-      "name": "Sundar Pichai",
-      "handle": "sundarpichai",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "frontier-tech"
-      ],
-      "note": "Google CEO"
-    },
-    {
-      "id": "pmarca-twitter",
-      "type": "twitter",
-      "name": "Marc Andreessen",
-      "handle": "pmarca",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "frontier-tech",
-        "crypto"
-      ],
-      "note": "a16z"
-    },
-    {
-      "id": "levie-twitter",
-      "type": "twitter",
-      "name": "Aaron Levie",
-      "handle": "levie",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "frontier-tech"
-      ],
-      "note": "Box CEO"
-    },
-    {
-      "id": "satya-twitter",
-      "type": "twitter",
-      "name": "Satya Nadella",
-      "handle": "satyanadella",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "frontier-tech"
-      ],
-      "note": "Microsoft CEO"
     },
     {
       "id": "mit-tech-review-rss",
@@ -1039,18 +893,6 @@
       "note": "AI Engineer community, Latent Space podcast"
     },
     {
-      "id": "erikbryn-twitter",
-      "type": "twitter",
-      "name": "Erik Brynjolfsson",
-      "handle": "erikbryn",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "frontier-tech"
-      ],
-      "note": "Stanford Digital Economy Lab"
-    },
-    {
       "id": "balaji-twitter",
       "type": "twitter",
       "name": "Balaji Srinivasan",
@@ -1062,54 +904,6 @@
         "frontier-tech"
       ],
       "note": "Former Coinbase CTO, macro thinker"
-    },
-    {
-      "id": "cobie-twitter",
-      "type": "twitter",
-      "name": "Cobie",
-      "handle": "cobie",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "crypto"
-      ],
-      "note": "Influential independent crypto analyst"
-    },
-    {
-      "id": "hsaka-twitter",
-      "type": "twitter",
-      "name": "Hsaka",
-      "handle": "HsakaTrades",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "crypto"
-      ],
-      "note": "Crypto trading analysis"
-    },
-    {
-      "id": "cochran-twitter",
-      "type": "twitter",
-      "name": "Adam Cochran",
-      "handle": "adamscochran",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "crypto"
-      ],
-      "note": "Cinneamhain Ventures, on-chain analysis"
-    },
-    {
-      "id": "lcermak-twitter",
-      "type": "twitter",
-      "name": "Larry Cermak",
-      "handle": "lawmaster",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "crypto"
-      ],
-      "note": "The Block research director"
     },
     {
       "id": "pytorch-github",
@@ -1149,18 +943,6 @@
       "note": "Framework for building LLM applications"
     },
     {
-      "id": "llamaindex-github",
-      "type": "github",
-      "name": "LlamaIndex",
-      "repo": "run-llama/llama_index",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "ai-agent"
-      ],
-      "note": "Data framework for LLM applications"
-    },
-    {
       "id": "ollama-github",
       "type": "github",
       "name": "Ollama",
@@ -1183,66 +965,6 @@
         "llm"
       ],
       "note": "High-throughput LLM inference engine"
-    },
-    {
-      "id": "openai-python-github",
-      "type": "github",
-      "name": "OpenAI Python SDK",
-      "repo": "openai/openai-python",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "llm"
-      ],
-      "note": "Official OpenAI Python client library"
-    },
-    {
-      "id": "anthropic-sdk-github",
-      "type": "github",
-      "name": "Anthropic SDK",
-      "repo": "anthropics/anthropic-sdk-python",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "llm"
-      ],
-      "note": "Official Anthropic Python SDK"
-    },
-    {
-      "id": "crewai-github",
-      "type": "github",
-      "name": "CrewAI",
-      "repo": "crewAIInc/crewAI",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "ai-agent"
-      ],
-      "note": "Multi-agent AI collaboration framework"
-    },
-    {
-      "id": "autogen-github",
-      "type": "github",
-      "name": "AutoGen",
-      "repo": "microsoft/autogen",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "ai-agent"
-      ],
-      "note": "Multi-agent conversation framework from Microsoft"
-    },
-    {
-      "id": "dify-github",
-      "type": "github",
-      "name": "Dify",
-      "repo": "langgenius/dify",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "ai-agent"
-      ],
-      "note": "LLM app development platform"
     },
     {
       "id": "openclaw-github",
@@ -1269,30 +991,6 @@
       "note": "Official Go implementation of Ethereum"
     },
     {
-      "id": "solidity-github",
-      "type": "github",
-      "name": "Solidity",
-      "repo": "ethereum/solidity",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "crypto"
-      ],
-      "note": "Ethereum smart contract programming language"
-    },
-    {
-      "id": "foundry-github",
-      "type": "github",
-      "name": "Foundry",
-      "repo": "foundry-rs/foundry",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "crypto"
-      ],
-      "note": "Fast, portable and modular Ethereum toolkit"
-    },
-    {
       "id": "eips-github",
       "type": "github",
       "name": "Ethereum EIPs",
@@ -1303,30 +1001,6 @@
         "crypto"
       ],
       "note": "Ethereum Improvement Proposals repository"
-    },
-    {
-      "id": "linux-github",
-      "type": "github",
-      "name": "Linux Kernel",
-      "repo": "torvalds/linux",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "frontier-tech"
-      ],
-      "note": "Linux kernel source code maintained by Linus Torvalds"
-    },
-    {
-      "id": "rust-github",
-      "type": "github",
-      "name": "Rust",
-      "repo": "rust-lang/rust",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "frontier-tech"
-      ],
-      "note": "The Rust programming language compiler and standard library"
     },
     {
       "id": "agno-github",
@@ -1370,17 +1044,6 @@
       "name": "a16z Crypto",
       "url": "https://a16zcrypto.substack.com/feed",
       "enabled": true,
-      "priority": true,
-      "topics": [
-        "crypto"
-      ]
-    },
-    {
-      "id": "bankless-rss",
-      "type": "rss",
-      "name": "Bankless",
-      "url": "https://newsletter.banklesshq.com/feed",
-      "enabled": false,
       "priority": true,
       "topics": [
         "crypto"
@@ -1646,18 +1309,6 @@
       ]
     },
     {
-      "id": "openclaw-twitter",
-      "type": "twitter",
-      "name": "OpenClaw",
-      "handle": "OpenClawAI",
-      "enabled": true,
-      "priority": true,
-      "topics": [
-        "ai-agent"
-      ],
-      "note": "Official OpenClaw account"
-    },
-    {
       "id": "steipete-twitter",
       "type": "twitter",
       "name": "Peter Steinberger",
@@ -1669,91 +1320,6 @@
         "frontier-tech"
       ],
       "note": "OpenClaw creator, now at OpenAI"
-    },
-    {
-      "id": "mem0-github",
-      "type": "github",
-      "repo": "mem0ai/mem0",
-      "name": "Mem0",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "ai-agent"
-      ],
-      "note": "Memory layer for AI agents"
-    },
-    {
-      "id": "openviking-github",
-      "type": "github",
-      "repo": "volcengine/OpenViking",
-      "name": "OpenViking",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "llm"
-      ],
-      "note": "Volcengine/ByteDance open-source LLM"
-    },
-    {
-      "id": "moltworker-github",
-      "type": "github",
-      "name": "Cloudflare MoltWorker",
-      "repo": "cloudflare/moltworker",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "frontier-tech"
-      ],
-      "note": "Cloudflare MoltWorker project"
-    },
-    {
-      "id": "picoclaw-github",
-      "type": "github",
-      "name": "Sipeed PicoClaw",
-      "repo": "sipeed/picoclaw",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "frontier-tech"
-      ],
-      "note": "Sipeed PicoClaw embedded AI project"
-    },
-    {
-      "id": "nanobot-github",
-      "type": "github",
-      "name": "HKUDS NanoBot",
-      "repo": "HKUDS/nanobot",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "ai-agent"
-      ],
-      "note": "HKUDS NanoBot AI agent project"
-    },
-    {
-      "id": "hermes-agent-github",
-      "type": "github",
-      "name": "Nous Hermes Agent",
-      "repo": "nousresearch/hermes-agent",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "ai-agent",
-        "llm"
-      ],
-      "note": "Nous Research Hermes agent framework/project"
-    },
-    {
-      "id": "zeroclaw-github",
-      "type": "github",
-      "name": "ZeroClaw",
-      "repo": "zeroclaw-labs/zeroclaw",
-      "enabled": true,
-      "priority": false,
-      "topics": [
-        "crypto"
-      ],
-      "note": "ZeroClaw Labs project"
     },
     {
       "id": "overreacted-rss",
@@ -1809,17 +1375,6 @@
       ],
       "priority": false,
       "enabled": true
-    },
-    {
-      "id": "rachelbythebay-rss",
-      "type": "rss",
-      "name": "Rachel by the Bay",
-      "url": "https://rachelbythebay.com/w/atom.xml",
-      "topics": [
-        "frontier-tech"
-      ],
-      "priority": false,
-      "enabled": false
     },
     {
       "id": "xeiaso-rss",
@@ -1899,184 +1454,624 @@
       "enabled": true
     },
     {
-      "id": "youtube-karpathy",
+      "id": "anthropic-engineering-rss",
       "type": "rss",
-      "name": "YouTube: Andrej Karpathy",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCXUPKJO5MZQN11PqgIvyuvQ",
-      "topics": [
-        "llm"
-      ],
+      "name": "Anthropic Engineering",
+      "url": "https://www.anthropic.com/engineering/feed.xml",
+      "enabled": true,
       "priority": true,
-      "enabled": true
+      "topics": [
+        "llm",
+        "ai-agent",
+        "frontier-tech"
+      ],
+      "note": "Anthropic工程深度博客，Claude/agents/evals"
     },
     {
-      "id": "youtube-ai-explained",
+      "id": "anthropic-research-rss",
       "type": "rss",
-      "name": "YouTube: AI Explained",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCBjkbmzVplPgVF-GheNYWCg",
-      "topics": [
-        "llm"
-      ],
+      "name": "Anthropic Research",
+      "url": "https://www.anthropic.com/research/rss.xml",
+      "enabled": true,
       "priority": true,
-      "enabled": true
-    },
-    {
-      "id": "youtube-two-minute-papers",
-      "type": "rss",
-      "name": "YouTube: Two Minute Papers",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCbfYPyITQ-7l4upoX8nvctg",
       "topics": [
         "llm",
         "frontier-tech"
       ],
-      "priority": false,
-      "enabled": true
+      "note": "Anthropic研究和安全"
     },
     {
-      "id": "youtube-yannic-kilcher",
+      "id": "openai-research-rss",
       "type": "rss",
-      "name": "YouTube: Yannic Kilcher",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCZHmQk67mSJgfCCTn7xBfew",
+      "name": "OpenAI Research",
+      "url": "https://openai.com/research/rss.xml",
+      "enabled": true,
+      "priority": true,
       "topics": [
-        "llm"
-      ],
-      "priority": false,
-      "enabled": true
-    },
-    {
-      "id": "youtube-3blue1brown",
-      "type": "rss",
-      "name": "YouTube: 3Blue1Brown",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCYO_jab_esuFRV4b17AJtAw",
-      "topics": [
+        "llm",
         "frontier-tech"
       ],
-      "priority": false,
-      "enabled": true
+      "note": "OpenAI研究更新"
     },
     {
-      "id": "youtube-fireship",
+      "id": "meta-ai-rss",
       "type": "rss",
-      "name": "YouTube: Fireship",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCsBjURrPoezykLs9EqgamOA",
+      "name": "Meta AI Blog",
+      "url": "https://ai.meta.com/blog/rss/",
+      "enabled": true,
+      "priority": true,
       "topics": [
+        "llm",
         "frontier-tech"
       ],
-      "priority": false,
-      "enabled": true
+      "note": "Meta AI/Llama官方"
     },
     {
-      "id": "youtube-matt-wolfe",
+      "id": "microsoft-research-rss",
       "type": "rss",
-      "name": "YouTube: Matt Wolfe",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCl3U-xOlFVLlsheAug-QoWA",
+      "name": "Microsoft Research AI",
+      "url": "https://www.microsoft.com/en-us/research/feed/",
+      "enabled": true,
+      "priority": false,
       "topics": [
-        "ai-agent"
+        "llm",
+        "frontier-tech"
       ],
-      "priority": false,
-      "enabled": true
+      "note": "微软AI研究"
     },
     {
-      "id": "youtube-dabo-rai",
+      "id": "bair-blog-rss",
       "type": "rss",
-      "name": "YouTube: Dabo Rai",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCx11muyXurAlpAzrjhERSCw",
+      "name": "BAIR Blog (Berkeley)",
+      "url": "https://bair.berkeley.edu/blog/feed.xml",
+      "enabled": true,
+      "priority": true,
       "topics": [
-        "ai-agent"
+        "llm",
+        "frontier-tech"
       ],
-      "priority": false,
-      "enabled": true
+      "note": "伯克利AI研究实验室"
     },
     {
-      "id": "youtube-ai-jason",
+      "id": "stanford-hai-rss",
       "type": "rss",
-      "name": "YouTube: AI Jason",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCrXSVX9a1mj8l0CMLwKgMVw",
+      "name": "Stanford HAI",
+      "url": "https://hai.stanford.edu/news/rss",
+      "enabled": true,
+      "priority": true,
       "topics": [
-        "ai-agent"
+        "llm",
+        "frontier-tech"
       ],
-      "priority": false,
-      "enabled": true
+      "note": "斯坦福以人为本AI研究院"
     },
     {
-      "id": "youtube-prompt-engineering",
+      "id": "cursor-blog-rss",
       "type": "rss",
-      "name": "YouTube: Prompt Engineering",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCDq7SjbgRKty5TgGafW8Clg",
+      "name": "Cursor Blog",
+      "url": "https://cursor.com/blog/rss.xml",
+      "enabled": true,
+      "priority": true,
       "topics": [
         "ai-agent",
-        "llm"
+        "frontier-tech"
       ],
+      "note": "Cursor AI编辑器"
+    },
+    {
+      "id": "cloudflare-blog-rss",
+      "type": "rss",
+      "name": "Cloudflare Blog",
+      "url": "https://blog.cloudflare.com/rss/",
+      "enabled": true,
       "priority": false,
-      "enabled": true
-    },
-    {
-      "id": "youtube-bankless",
-      "type": "rss",
-      "name": "YouTube: Bankless",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCAl9Ld79qaZxp9JzEOwd3aA",
-      "topics": [
-        "crypto"
-      ],
-      "priority": true,
-      "enabled": true
-    },
-    {
-      "id": "youtube-a16z-crypto",
-      "type": "rss",
-      "name": "YouTube: a16z crypto",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCTHq3W46BiAYjKUYZq2qm-Q",
-      "topics": [
-        "crypto"
-      ],
-      "priority": false,
-      "enabled": true
-    },
-    {
-      "id": "youtube-lex-fridman",
-      "type": "rss",
-      "name": "YouTube: Lex Fridman",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCSHZKyawb77ixDdsGog4iWA",
-      "topics": [
-        "llm",
-        "crypto"
-      ],
-      "priority": false,
-      "enabled": true
-    },
-    {
-      "id": "youtube-computerphile",
-      "type": "rss",
-      "name": "YouTube: Computerphile",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC9-y-6csu5WGm29I7JiwpnA",
       "topics": [
         "frontier-tech"
       ],
-      "priority": false,
-      "enabled": true
+      "note": "Cloudflare工程和AI基础设施"
     },
     {
-      "id": "youtube-ai-epiphany",
+      "id": "vercel-blog-rss",
       "type": "rss",
-      "name": "YouTube: AI Epiphany",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UChepm4zf3QIYZgL5w7jl3MA",
+      "name": "Vercel Blog",
+      "url": "https://vercel.com/atom",
+      "enabled": true,
+      "priority": false,
       "topics": [
-        "llm"
+        "frontier-tech"
       ],
-      "priority": false,
-      "enabled": true
+      "note": "Vercel/AI开发工具"
     },
     {
-      "id": "youtube-huggingface",
+      "id": "scale-ai-rss",
       "type": "rss",
-      "name": "YouTube: Hugging Face",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCHlNU7kIZhRgSbhHvFoy72w",
+      "name": "Scale AI Edge",
+      "url": "https://scale.com/blog/feed",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "llm",
+        "frontier-tech"
+      ],
+      "note": "AI数据基础设施"
+    },
+    {
+      "id": "epoch-ai-rss",
+      "type": "rss",
+      "name": "Epoch AI",
+      "url": "https://epoch.ai/feed.xml",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "llm",
+        "frontier-tech"
+      ],
+      "note": "AI算力/训练数据独立分析"
+    },
+    {
+      "id": "latentspace-rss",
+      "type": "rss",
+      "name": "Latent Space",
+      "url": "https://latent.space/rss",
+      "enabled": true,
+      "priority": true,
       "topics": [
         "llm",
         "ai-agent"
       ],
+      "note": "Swyx的AI工程师播客+newsletter"
+    },
+    {
+      "id": "chiphuyen-rss",
+      "type": "rss",
+      "name": "Chip Huyen",
+      "url": "https://huyenchip.com/feed.xml",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "llm",
+        "ai-agent"
+      ],
+      "note": "MLOps/agents/inference实战"
+    },
+    {
+      "id": "pragmatic-engineer-rss",
+      "type": "rss",
+      "name": "The Pragmatic Engineer",
+      "url": "https://blog.pragmaticengineer.com/rss/",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "frontier-tech"
+      ],
+      "note": "Gergely Orosz，工程+AI"
+    },
+    {
+      "id": "fastai-rss",
+      "type": "rss",
+      "name": "Fast.ai Blog",
+      "url": "https://www.fast.ai/feed.xml",
+      "enabled": true,
       "priority": false,
-      "enabled": true
+      "topics": [
+        "llm"
+      ],
+      "note": "深度学习教育实践"
+    },
+    {
+      "id": "sequoia-rss",
+      "type": "rss",
+      "name": "Sequoia Capital",
+      "url": "https://sequoiacap.com/feed/",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "frontier-tech"
+      ],
+      "note": "红杉资本AI投资洞察"
+    },
+    {
+      "id": "every-rss",
+      "type": "rss",
+      "name": "Every",
+      "url": "https://every.to/feed",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "ai-agent",
+        "frontier-tech"
+      ],
+      "note": "AI+生产力newsletter"
+    },
+    {
+      "id": "karpathy-blog-rss",
+      "type": "rss",
+      "name": "Andrej Karpathy Blog",
+      "url": "https://karpathy.bearblog.dev/feed/",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "llm",
+        "frontier-tech"
+      ],
+      "note": "Karpathy个人博客"
+    },
+    {
+      "id": "construction-physics-rss",
+      "type": "rss",
+      "name": "Construction Physics",
+      "url": "https://www.construction-physics.com/feed",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "frontier-tech"
+      ],
+      "note": "科技与工程深度分析"
+    },
+    {
+      "id": "interconnects-rss",
+      "type": "rss",
+      "name": "Interconnects (Nathan Lambert)",
+      "url": "https://interconnects.ai/feed/",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "llm",
+        "frontier-tech"
+      ],
+      "note": "前沿AI/模型生态"
+    },
+    {
+      "id": "oneusefulthing-rss",
+      "type": "rss",
+      "name": "One Useful Thing (Ethan Mollick)",
+      "url": "https://oneusefulthing.org/feed/",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "llm",
+        "frontier-tech"
+      ],
+      "note": "AI应用/教育，沃顿商学院教授"
+    },
+    {
+      "id": "semianalysis-rss",
+      "type": "rss",
+      "name": "SemiAnalysis",
+      "url": "https://semianalysis.substack.com/feed",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "llm",
+        "frontier-tech"
+      ],
+      "note": "芯片/算力/AI经济学深度分析"
+    },
+    {
+      "id": "philschmid-rss",
+      "type": "rss",
+      "name": "Philipp Schmid",
+      "url": "https://philschmid.de/feed.xml",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "llm"
+      ],
+      "note": "开源模型训练/微调/部署"
+    },
+    {
+      "id": "thegradient-rss",
+      "type": "rss",
+      "name": "The Gradient",
+      "url": "https://thegradient.pub/rss/",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "llm",
+        "frontier-tech"
+      ],
+      "note": "ML高质量研究文章"
+    },
+    {
+      "id": "marktechpost-rss",
+      "type": "rss",
+      "name": "MarkTechPost",
+      "url": "https://marktechpost.com/feed/",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "llm",
+        "frontier-tech"
+      ],
+      "note": "AI/ML新闻和研究"
+    },
+    {
+      "id": "rundown-ai-rss",
+      "type": "rss",
+      "name": "The Rundown AI",
+      "url": "https://therundown.ai/feed",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "llm",
+        "ai-agent"
+      ],
+      "note": "AI产品发布和行业动态"
+    },
+    {
+      "id": "notboring-rss",
+      "type": "rss",
+      "name": "Not Boring (Packy McCormick)",
+      "url": "https://notboring.co/feed",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "frontier-tech"
+      ],
+      "note": "科技商业叙事+AI"
+    },
+    {
+      "id": "lennysnewsletter-rss",
+      "type": "rss",
+      "name": "Lenny's Newsletter",
+      "url": "https://lennysnewsletter.com/feed",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "ai-agent",
+        "frontier-tech"
+      ],
+      "note": "产品+AI策略"
+    },
+    {
+      "id": "hamel-rss",
+      "type": "rss",
+      "name": "Hamel Husain",
+      "url": "https://hamel.dev/blog/index.xml",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "llm",
+        "ai-agent"
+      ],
+      "note": "LLM应用/evals/实战"
+    },
+    {
+      "id": "techmeme-rss",
+      "type": "rss",
+      "name": "Techmeme",
+      "url": "https://techmeme.com/feed.xml",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "frontier-tech"
+      ],
+      "note": "科技头条聚合器"
+    },
+    {
+      "id": "thenewstack-rss",
+      "type": "rss",
+      "name": "The New Stack",
+      "url": "https://thenewstack.io/feed/",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "frontier-tech"
+      ],
+      "note": "开发者/AI工程"
+    },
+    {
+      "id": "theregister-rss",
+      "type": "rss",
+      "name": "The Register",
+      "url": "https://www.theregister.com/headlines.atom",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "frontier-tech"
+      ],
+      "note": "企业科技/AI基础设施"
+    },
+    {
+      "id": "theinformation-rss",
+      "type": "rss",
+      "name": "The Information",
+      "url": "https://www.theinformation.com/feed",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "frontier-tech"
+      ],
+      "note": "深度科技商业报道"
+    },
+    {
+      "id": "tldr-rss",
+      "type": "rss",
+      "name": "TLDR Newsletter",
+      "url": "https://tldr.tech/feed",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "frontier-tech"
+      ],
+      "note": "科技日报摘要"
+    },
+    {
+      "id": "alphaxiv-trending",
+      "type": "rss",
+      "name": "AlphaXiv Trending",
+      "url": "https://alphaxiv.org/trending.rss",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "llm"
+      ],
+      "note": "热门arXiv论文"
+    },
+    {
+      "id": "eugeneyan-rss",
+      "type": "rss",
+      "name": "Eugene Yan",
+      "url": "https://eugeneyan.com/feed.xml",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "llm",
+        "ai-agent"
+      ],
+      "note": "AI应用/实用性"
+    },
+    {
+      "id": "alexalbert-twitter",
+      "type": "twitter",
+      "name": "Alex Albert (Anthropic)",
+      "handle": "alexalbert__",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "llm",
+        "ai-agent"
+      ],
+      "note": "Anthropic研究员，Claude/evals信号"
+    },
+    {
+      "id": "kevinweil-twitter",
+      "type": "twitter",
+      "name": "Kevin Weil (OpenAI)",
+      "handle": "kevinweil",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "llm",
+        "ai-agent"
+      ],
+      "note": "OpenAI产品负责人"
+    },
+    {
+      "id": "amasad-twitter",
+      "type": "twitter",
+      "name": "Amjad Masad (Replit)",
+      "handle": "amasad",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "ai-agent",
+        "frontier-tech"
+      ],
+      "note": "Replit CEO，AI编码/开发者工具"
+    },
+    {
+      "id": "rauchg-twitter",
+      "type": "twitter",
+      "name": "Guillermo Rauch (Vercel)",
+      "handle": "rauchg",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "frontier-tech"
+      ],
+      "note": "Vercel CEO，AI应用基础设施"
+    },
+    {
+      "id": "joshwoodward-twitter",
+      "type": "twitter",
+      "name": "Josh Woodward (Google Labs)",
+      "handle": "joshwoodward",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "llm",
+        "frontier-tech"
+      ],
+      "note": "Google Labs产品负责人，Gemini信号"
+    },
+    {
+      "id": "feifei-twitter",
+      "type": "twitter",
+      "name": "Fei-Fei Li",
+      "handle": "drfeifei",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "llm",
+        "frontier-tech"
+      ],
+      "note": "斯坦福，AI研究/政策"
+    },
+    {
+      "id": "mattturck-twitter",
+      "type": "twitter",
+      "name": "Matt Turck (FirstMark)",
+      "handle": "mattturck",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "frontier-tech"
+      ],
+      "note": "FirstMark，AI/数据/市场结构"
+    },
+    {
+      "id": "reddit-ai-agents",
+      "type": "reddit",
+      "name": "r/AI_Agents",
+      "subreddit": "AI_Agents",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "ai-agent"
+      ],
+      "note": "AI Agent社区"
+    },
+    {
+      "id": "reddit-claudeai",
+      "type": "reddit",
+      "name": "r/ClaudeAI",
+      "subreddit": "ClaudeAI",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "llm",
+        "ai-agent"
+      ],
+      "note": "Claude用户社区"
+    },
+    {
+      "id": "reddit-promptengineering",
+      "type": "reddit",
+      "name": "r/PromptEngineering",
+      "subreddit": "PromptEngineering",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "llm",
+        "ai-agent"
+      ],
+      "note": "Prompt工程社区"
+    },
+    {
+      "id": "reddit-vibecoding",
+      "type": "reddit",
+      "name": "r/vibecoding",
+      "subreddit": "vibecoding",
+      "enabled": true,
+      "priority": true,
+      "topics": [
+        "ai-agent"
+      ],
+      "note": "AI辅助编码社区"
+    },
+    {
+      "id": "reddit-artificialintelligence",
+      "type": "reddit",
+      "name": "r/ArtificialInteligence",
+      "subreddit": "ArtificialInteligence",
+      "enabled": true,
+      "priority": false,
+      "topics": [
+        "llm",
+        "ai-agent"
+      ],
+      "note": "AI讨论社区"
     }
   ]
 }
