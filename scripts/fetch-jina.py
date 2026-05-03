@@ -33,38 +33,70 @@ RETRY_COUNT = 1
 RETRY_DELAY = 3.0
 JINA_BASE = "https://r.jina.ai/"
 
-# Navigation boilerplate patterns to exclude
-NAV_PATTERNS = [
-    r'^skip to', r'^go to', r'^jump to',
-    r'^(about|contact|login|sign.?in|sign.?up|subscribe|newsletter)',
-    r'^(privacy|terms|cookie|accessibility|copyright)',
-    r'^(home|back|menu|navigation|search)',
-    r'^(follow us|share|social|email us)',
-    r'^(read more|learn more|find out more|view all|see all)',
-    r'^(book a demo|try it free|get started|start here)',
-    r'^(upgrade to pro|pricing|enterprise)',
-    r'^(developers|research index|company|business)',
-    r'^\d+k (reads|followers|subscribers|stars)',
-    r'^©\s*\d{4}',
-    r'^my favourites',
-    r'^prototypes?$',
-    r'^writing$',
-    r'^speaking$',
-    r'^about$',
-    r'^more than \d',
-    r'^(premium|free trial|save \d+%)',
-    r'^not boring$',
-    r'^deep dives?$',
-    r'^vertical integrators?$',
-    r'^ai job board',
-    r'^fellowship programs?$',
-    r'^student affinity',
-    r'^subscribe to email',
-    r'^(pause|play) media$',
-]
+# Navigation / category / boilerplate title patterns to reject
+NAV_TITLE_KEYWORDS = {
+    # Site chrome
+    'skip to', 'go to', 'jump to', 'scroll to',
+    'home', 'back', 'menu', 'navigation', 'sitemap',
+    'login', 'log in', 'sign in', 'sign up', 'register',
+    'subscribe', 'newsletter', 'email us', 'contact us',
+    'privacy', 'terms of', 'cookie', 'accessibility', 'copyright',
+    # CTAs
+    'book a demo', 'try it free', 'get started', 'start here',
+    'upgrade to', 'pricing', 'free trial', 'save ', 'subscribe now',
+    'read more', 'learn more', 'find out', 'view all', 'see all',
+    'join ieee',
+    # Generic sections
+    'about', 'company', 'business', 'developers', 'enterprise',
+    'research index', 'research overview', 'view research',
+    'latest crypto news', 'latest news',
+    'follow us', 'share this', 'social media',
+    'pause media', 'play media',
+    # Category/topic pages (not articles)
+    'centers & labs', 'research publications', 'research partners',
+    'software progress', 'open models', 'leading companies',
+    'climate tech', 'consumer electronics', 'biomedical',
+    'scale data engine', 'scale genai platform',
+    'fellowship program', 'student affinity',
+    # Substack/newsletter boilerplate
+    'not boring by', 'deep dive', 'deep dives', 'vertical integrator',
+    'ai job board', 'view blog',
+    # Personal site nav
+    'my favourite', 'prototypes', 'speaking', 'writing',
+    'more than ', 'more than 50k',
+}
+# Short exact-match titles to reject (case-insensitive)
+NAV_TITLE_EXACT = {
+    'research', 'about', 'enterprise', 'newsletter', 'resources',
+    'premium', 'explore', 'blog', 'careers', 'team', 'press',
+    'products', 'solutions', 'services', 'support', 'help',
+    'community', 'events', 'webinars', 'podcast', 'docs',
+    'api', 'status', 'security', 'partners',
+    # Epoch AI nav pages
+    'data insights', 'frontier data centers', 'chip owners',
+    'chip sales', 'frontiermath: open problems', 'frontiermath: tiers 1-4',
+    # IEEE nav
+    'engineering resources', 'special reports', 'top programming languages',
+    'current issue', 'the institute', 'the institute archive',
+    # Stanford HAI nav
+    'executive and professional education', 'government and policymakers',
+    'stanford students', 'student opportunities', 'ai index report',
+    'global vibrancy tool', 'policymaker education',
+    # Scale AI nav
+    'us public sector', 'global public sector', 'modern slavery statement',
+    'data labeling', 'ml model training', 'diffusion models',
+    'guide to ai for ecommerce', 'computer vision applications',
+    'large language models',
+    # Every nav/columns
+    'context window', 'source code',
+    # Epoch AI nav
+    'see more insights',
+    # The Block nav
+    'press release',
+}
 
-# URL patterns to exclude (navigation/footer links)
-URL_SKIP_PATTERNS = [
+# URL patterns that indicate NON-article links
+URL_SKIP_SUBSTRINGS = [
     '/cdn-cgi', '/privacy', '/terms', '/login', '/signup', '/signin',
     '/about', '/contact', '/subscribe', '/search',
     '#', 'javascript:', 'mailto:', '/feed', '/rss',
@@ -73,17 +105,19 @@ URL_SKIP_PATTERNS = [
     'github.com/login', 'github.com/feedback',
     'chromewebstore.google.com',
     '/start-here', '/prototyping', '/speaking',
+    '/membership', '/join', '/donate',
 ]
-
-# File path patterns that look like articles
-ARTICLE_URL_PATTERNS = [
-    r'/blog/', r'/engineering/', r'/research/', r'/news/', r'/post/',
-    r'/article/', r'/publish/', r'/paper/', r'/report/', r'/insight/',
-    r'/updates?/', r'/announcements?/', r'/notes?/',
-    r'/writing/', r'/essays?/', r'/tutorials?',
-    r'/\d{4}/',  # Year in path like /2026/...
-    r'/\d{4}-\d{2}-\d{2}',  # Date in path
-    r'[a-z]-[a-z].*/\w{3,}',  # slug-style paths like /managed-agents
+# URL file extensions that are NOT articles
+URL_SKIP_EXTENSIONS = {
+    '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico',
+    '.mp4', '.mp3', '.wav', '.avi', '.mov',
+    '.pdf', '.zip', '.tar', '.gz',
+    '.css', '.js', '.woff', '.ttf', '.eot',
+}
+# URL path segments that are category/topic pages, not articles
+URL_CATEGORY_SEGMENTS = [
+    '/topic/', '/topics/', '/category/', '/categories/', '/tag/', '/tags/',
+    '/centers-', '/centers/', '/type/', '/filter/',
 ]
 
 
@@ -98,49 +132,86 @@ def setup_logging(verbose: bool) -> logging.Logger:
 
 
 def is_nav_title(title: str) -> bool:
-    """Check if a title looks like navigation boilerplate."""
-    title_lower = title.lower().strip()
-    if len(title_lower) < 8:
+    """Check if a title looks like navigation boilerplate or a category page."""
+    title_stripped = title.strip()
+    title_lower = title_stripped.lower()
+    
+    # Reject titles with image markers that survived cleaning
+    if title_stripped.startswith('![') or title_stripped.startswith('['):
         return True
-    for pattern in NAV_PATTERNS:
-        if re.match(pattern, title_lower):
+    
+    # Reject very short titles (< 10 chars after trimming)
+    if len(title_stripped) < 10:
+        return True
+    
+    # Reject single-person-name titles: 2-3 words, all capitalized, no verbs
+    # Pattern: "Firstname Lastname" or "Firstname Middlename Lastname,"
+    # Heuristic: if it's ≤3 words, starts with capital, ends with optional comma
+    # This catches "Shana Lynch", "Curtis Langlotz,", "Mike Taylor"
+    words = title_stripped.replace(',', '').split()
+    if 1 <= len(words) <= 3 and all(w[0].isupper() for w in words if w):
+        return True
+    
+    # Exact match against short nav words
+    if title_lower in NAV_TITLE_EXACT:
+        return True
+    
+    # Keyword substring match
+    for kw in NAV_TITLE_KEYWORDS:
+        if kw in title_lower:
             return True
+    
     return False
 
 
 def is_article_url(url: str) -> bool:
-    """Check if a URL looks like an article (has a meaningful path)."""
+    """Check if a URL looks like an actual article page (not nav/image/category)."""
     if not url:
         return False
     
-    # Skip known non-article URLs
     url_lower = url.lower()
-    for pattern in URL_SKIP_PATTERNS:
+    
+    # 1. Reject by substring patterns
+    for pattern in URL_SKIP_SUBSTRINGS:
         if pattern in url_lower:
             return False
     
+    # 2. Reject by file extension (image, media, binary files)
+    path_part = urlparse(url_lower).path.rstrip('/')
+    for ext in URL_SKIP_EXTENSIONS:
+        if path_part.endswith(ext):
+            return False
+    
+    # 3. Reject CDN image URLs (common pattern: cdn.somesite.com/images/...)
     parsed = urlparse(url)
+    host_lower = parsed.netloc.lower()
+    if any(seg in host_lower for seg in ('cdn.', 'images.', 'image.', 'img.', 'static.', 'assets.', 'media.')):
+        return False
+    
+    # 4. Reject category/topic listing pages
+    for cat_seg in URL_CATEGORY_SEGMENTS:
+        if cat_seg in url_lower:
+            return False
+    
     path = parsed.path.rstrip('/')
     
-    # Must have a meaningful path (not just / or empty)
+    # Must have a meaningful path
     if not path or path == '/':
         return False
     
-    # Check for article-like path patterns
-    for pattern in ARTICLE_URL_PATTERNS:
-        if re.search(pattern, path):
-            return True
-    
-    # Path with 2+ segments that looks like a slug
     parts = [p for p in path.split('/') if p]
+    
+    # Path with 2+ segments, last segment looks like a slug
     if len(parts) >= 2:
-        # Like /engineering/managed-agents or /blog/post-slug
         last_part = parts[-1]
-        if len(last_part) >= 5 and '-' in last_part:
+        if len(last_part) >= 5 and ('-' in last_part or '_' in last_part):
+            return True
+        # Date-based paths like /2026/05/01/slug or /blog/1234
+        if re.match(r'^\d{4}$', parts[-2] if len(parts) >= 2 else ''):
             return True
     
-    # Single-segment paths that are slug-like (e.g., /contextual-retrieval)
-    if len(parts) == 1 and len(parts[0]) >= 8 and '-' in parts[0]:
+    # Single-segment slug paths (e.g., /contextual-retrieval)
+    if len(parts) == 1 and len(parts[0]) >= 8 and ('-' in parts[0] or '_' in parts[0]):
         return True
     
     return False
@@ -167,12 +238,33 @@ def parse_jina_markdown(content: str, source_url: str) -> List[Dict[str, Any]]:
         raw_title = match.group(1).strip()
         url = match.group(2).strip()
         
-        # Clean title
-        # Remove image markers: ![Image N: text]
-        title = re.sub(r'!?#{1,6}\s*', '', raw_title)
-        title = re.sub(r'Image \d+:?\s*', '', title)
-        title = re.sub(r'#{1,4}\s+', ' ', title)
+        # Clean title — aggressive stripping of image/markdown artifacts
+        title = raw_title
+        # Remove image markers: ![Alt text] → empty
+        title = re.sub(r'!\[.*?\]', '', title)
+        # Remove standalone markdown image references
+        title = re.sub(r'^\s*\[Image\s*\d*.*?\]', '', title)
+        # Remove heading markers (#### etc)
+        title = re.sub(r'#{1,6}\s+', ' ', title)
+        # Remove bullet markers (• or -)
+        title = re.sub(r'^\s*[•\-]\s*', '', title)
+        # Remove leading bracket artifacts like [icon]
+        if re.match(r'^\[[^\]]*\]$', title.strip()):
+            continue
+        # Remove trailing "Release DATE X min read" pattern (OpenAI)
+        title = re.sub(r'\s+Release\s+\w{3}\s+\d{1,2},?\s+\d{4}\s+\d+\s+min\s+read$', '', title)
+        # Remove trailing date patterns like "Apr 23, 2026 12 min read"
+        title = re.sub(r'\s+\w{3}\s+\d{1,2},?\s+\d{4}\s+\d+\s+min\s+read$', '', title)
+        # Remove "Featured ##" prefix
+        title = re.sub(r'^Featured\s+##\s*', '', title)
+        # Remove trailing " — TAG, TAG" patterns (Philipp Schmid)
+        title = re.sub(r'\s+—\s+\w.*$', '', title)
+        # Remove date prefix like "Feb 26, 2026 " (Cursor)
+        title = re.sub(r'^\w{3}\s+\d{1,2},?\s+\d{4}\s+', '', title)
         title = re.sub(r'\s+', ' ', title).strip()
+        # Fix weird intra-word spaces from Jina parsing: "C ash" → "Cash", "B eyond" → "Beyond"
+        # Pattern: single uppercase letter + space + lowercase word, but NOT "A" (article)
+        title = re.sub(r'\b(?!A\b)([A-Z])\s+([a-z]{2,})\b', r'\1\2', title)
         
         # Remove trailing dates from title (keep them for article though)
         date_match = re.search(r'(\w{3}\s+\d{1,2},?\s+\d{4})$', title)
@@ -189,16 +281,14 @@ def parse_jina_markdown(content: str, source_url: str) -> List[Dict[str, Any]]:
         if not is_article_url(url):
             continue
         
-        # Domain check - prefer same domain
+        # Domain check — reject cross-domain links (not same site)
         link_domain = urlparse(url).netloc.lower().replace("www.", "")
         if link_domain and base_domain:
-            # Allow same domain or parent/subdomain
-            if not (link_domain == base_domain or 
+            if not (link_domain == base_domain or
                     link_domain.endswith('.' + base_domain) or
                     base_domain.endswith('.' + link_domain)):
-                # Allow known content CDNs
-                if 'cdn' not in link_domain:
-                    continue
+                # NOT same domain → reject (handles CDN images too)
+                continue
         
         # Dedup
         url_key = url.rstrip('/')
