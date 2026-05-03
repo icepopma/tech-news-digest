@@ -162,10 +162,10 @@
     },
     {
       "id": "theblock-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "The Block",
-      "url": "https://www.theblock.co/rss.xml",
-      "enabled": false,
+      "url": "https://www.theblock.co",
+      "enabled": true,
       "priority": true,
       "topics": [
         "crypto"
@@ -357,10 +357,10 @@
     },
     {
       "id": "synced-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "机器之心 Synced",
-      "url": "https://www.jiqizhixin.com/rss",
-      "enabled": false,
+      "url": "https://www.jiqizhixin.com",
+      "enabled": true,
       "priority": true,
       "topics": [
         "llm",
@@ -745,10 +745,10 @@
     },
     {
       "id": "messari-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "Messari",
-      "url": "https://messari.io/rss",
-      "enabled": false,
+      "url": "https://messari.io",
+      "enabled": true,
       "priority": false,
       "topics": [
         "crypto"
@@ -805,10 +805,10 @@
     },
     {
       "id": "ieee-spectrum-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "IEEE Spectrum",
-      "url": "https://spectrum.ieee.org/feeds/feed.rss",
-      "enabled": false,
+      "url": "https://spectrum.ieee.org",
+      "enabled": true,
       "priority": false,
       "topics": [
         "frontier-tech"
@@ -1455,10 +1455,10 @@
     },
     {
       "id": "anthropic-engineering-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "Anthropic Engineering",
-      "url": "https://www.anthropic.com/engineering/feed.xml",
-      "enabled": false,
+      "url": "https://www.anthropic.com/engineering",
+      "enabled": true,
       "priority": true,
       "topics": [
         "llm",
@@ -1469,10 +1469,10 @@
     },
     {
       "id": "anthropic-research-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "Anthropic Research",
-      "url": "https://www.anthropic.com/research/rss.xml",
-      "enabled": false,
+      "url": "https://www.anthropic.com/research",
+      "enabled": true,
       "priority": true,
       "topics": [
         "llm",
@@ -1482,10 +1482,10 @@
     },
     {
       "id": "openai-research-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "OpenAI Research",
-      "url": "https://openai.com/research/rss.xml",
-      "enabled": false,
+      "url": "https://openai.com/research",
+      "enabled": true,
       "priority": true,
       "topics": [
         "llm",
@@ -1534,10 +1534,10 @@
     },
     {
       "id": "stanford-hai-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "Stanford HAI",
-      "url": "https://hai.stanford.edu/news/rss",
-      "enabled": false,
+      "url": "https://hai.stanford.edu/news",
+      "enabled": true,
       "priority": true,
       "topics": [
         "llm",
@@ -1547,10 +1547,10 @@
     },
     {
       "id": "cursor-blog-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "Cursor Blog",
-      "url": "https://cursor.com/blog/rss.xml",
-      "enabled": false,
+      "url": "https://cursor.com/blog",
+      "enabled": true,
       "priority": true,
       "topics": [
         "ai-agent",
@@ -1584,10 +1584,10 @@
     },
     {
       "id": "scale-ai-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "Scale AI Edge",
-      "url": "https://scale.com/blog/feed",
-      "enabled": false,
+      "url": "https://scale.com/blog",
+      "enabled": true,
       "priority": false,
       "topics": [
         "llm",
@@ -1597,10 +1597,10 @@
     },
     {
       "id": "epoch-ai-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "Epoch AI",
-      "url": "https://epoch.ai/feed.xml",
-      "enabled": false,
+      "url": "https://epoch.ai",
+      "enabled": true,
       "priority": true,
       "topics": [
         "llm",
@@ -1672,10 +1672,10 @@
     },
     {
       "id": "every-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "Every",
-      "url": "https://every.to/feed",
-      "enabled": false,
+      "url": "https://every.to",
+      "enabled": true,
       "priority": false,
       "topics": [
         "ai-agent",
@@ -1749,10 +1749,10 @@
     },
     {
       "id": "philschmid-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "Philipp Schmid",
-      "url": "https://philschmid.de/feed.xml",
-      "enabled": false,
+      "url": "https://philschmid.de",
+      "enabled": true,
       "priority": false,
       "topics": [
         "llm"
@@ -1787,10 +1787,10 @@
     },
     {
       "id": "rundown-ai-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "The Rundown AI",
-      "url": "https://therundown.ai/feed",
-      "enabled": false,
+      "url": "https://therundown.ai",
+      "enabled": true,
       "priority": true,
       "topics": [
         "llm",
@@ -1800,10 +1800,10 @@
     },
     {
       "id": "notboring-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "Not Boring (Packy McCormick)",
-      "url": "https://notboring.co/feed",
-      "enabled": false,
+      "url": "https://notboring.co",
+      "enabled": true,
       "priority": false,
       "topics": [
         "frontier-tech"
@@ -1874,10 +1874,10 @@
     },
     {
       "id": "theinformation-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "The Information",
-      "url": "https://www.theinformation.com/feed",
-      "enabled": false,
+      "url": "https://www.theinformation.com",
+      "enabled": true,
       "priority": false,
       "topics": [
         "frontier-tech"
@@ -1898,10 +1898,10 @@
     },
     {
       "id": "alphaxiv-trending",
-      "type": "rss",
+      "type": "jina",
       "name": "AlphaXiv Trending",
-      "url": "https://alphaxiv.org/trending.rss",
-      "enabled": false,
+      "url": "https://alphaxiv.org",
+      "enabled": true,
       "priority": true,
       "topics": [
         "llm"
@@ -1910,10 +1910,10 @@
     },
     {
       "id": "eugeneyan-rss",
-      "type": "rss",
+      "type": "jina",
       "name": "Eugene Yan",
-      "url": "https://eugeneyan.com/feed.xml",
-      "enabled": false,
+      "url": "https://eugeneyan.com",
+      "enabled": true,
       "priority": false,
       "topics": [
         "llm",
@@ -2072,6 +2072,20 @@
         "ai-agent"
       ],
       "note": "AI讨论社区"
+    },
+    {
+      "id": "openai-engineering-jina",
+      "type": "jina",
+      "name": "OpenAI Engineering",
+      "url": "https://openai.com/engineering",
+      "enabled": false,
+      "priority": true,
+      "topics": [
+        "llm",
+        "ai-agent",
+        "frontier-tech"
+      ],
+      "note": "openai.com/engineering returns 404"
     }
   ]
 }

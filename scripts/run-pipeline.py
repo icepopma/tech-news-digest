@@ -147,7 +147,7 @@ def main() -> int:
     
     # --only takes precedence: skip everything not in the list
     if only_steps:
-        all_step_keys = {"rss", "twitter", "github", "github trending", "reddit", "web"}
+        all_step_keys = {"rss", "twitter", "github", "github trending", "reddit", "web", "jina"}
         skip_steps = all_step_keys - {k for k in all_step_keys if any(o in k for o in only_steps)}
         logger.info(f"🎯 --only {args.only} → running: {all_step_keys - skip_steps}")
 
@@ -164,6 +164,7 @@ def main() -> int:
     tmp_trending = Path(_run_dir) / "trending.json"
     tmp_reddit = Path(_run_dir) / "reddit.json"
     tmp_web = Path(_run_dir) / "web.json"
+    tmp_jina = Path(_run_dir) / "jina.json"
     logger.info(f"📁 Run directory: {_run_dir}")
 
     # Common args for all fetch scripts
@@ -186,6 +187,9 @@ def main() -> int:
          + ["--freshness", args.freshness]
          + verbose_flag,
          tmp_web),
+        ("Jina", "fetch-jina.py",
+         common + ["--hours", str(args.hours)] + verbose_flag,
+         tmp_jina),
     ]
 
     # Filter steps by --skip and --reuse-dir
@@ -229,7 +233,7 @@ def main() -> int:
     merge_args = ["--verbose"] if args.verbose else []
     for flag, path in [("--rss", tmp_rss), ("--twitter", tmp_twitter),
                        ("--github", tmp_github), ("--trending", tmp_trending), ("--reddit", tmp_reddit),
-                       ("--web", tmp_web)]:
+                       ("--web", tmp_web), ("--jina", tmp_jina)]:
         if path.exists():
             merge_args += [flag, str(path)]
     if args.archive_dir:
@@ -250,7 +254,7 @@ def main() -> int:
     # Phase 4: Record source health from the fetch outputs
     health_output = Path(_run_dir) / "health.json"
     health_args = []
-    for flag, path in [("--rss", tmp_rss), ("--twitter", tmp_twitter), ("--github", tmp_github), ("--reddit", tmp_reddit), ("--web", tmp_web)]:
+    for flag, path in [("--rss", tmp_rss), ("--twitter", tmp_twitter), ("--github", tmp_github), ("--reddit", tmp_reddit), ("--web", tmp_web), ("--jina", tmp_jina)]:
         if path.exists():
             health_args += [flag, str(path)]
     health_args += ["--output", str(health_output)]
