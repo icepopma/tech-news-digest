@@ -66,6 +66,11 @@ def setup_logging(verbose: bool) -> logging.Logger:
 
 def clean_tweet_text(text: str) -> str:
     """Clean tweet text for better display."""
+    # Remove markdown images: [![alt](url)](link) and ![alt](url)
+    text = re.sub(r'\[!\[.*?\]\(.*?\)\]\(.*?\)', '', text)
+    text = re.sub(r'!\[.*?\]\(.*?\)', '', text)
+    # Remove markdown links but keep text: [text](url) → text
+    text = re.sub(r'\[([^\]]*)\]\(.*?\)', r'\1', text)
     # Remove excessive whitespace
     text = re.sub(r'\s+', ' ', text).strip()
     # Truncate if too long
@@ -293,7 +298,9 @@ class OfficialBackend(TwitterBackend):
                             "date": created_at.isoformat(),
                             "topics": topics[:],
                             "metrics": tweet.get('public_metrics', {}),
-                            "tweet_id": tweet['id']
+                            "tweet_id": tweet['id'],
+                            "source_type": "twitter",
+                            "source_name": f"@{handle}",
                         })
 
                 return self._make_result(source, articles, attempt)
@@ -392,6 +399,8 @@ class TwitterApiIoBackend(TwitterBackend):
                     "impression_count": tweet.get("viewCount", 0),
                 },
                 "tweet_id": tweet_id,
+                "source_type": "twitter",
+                "source_name": f"@{handle}",
             })
         return articles
 
@@ -590,79 +599,270 @@ class JinaReaderBackend(TwitterBackend):
 
         return None
 
+    # Patterns for stripping markdown noise from Jina output
+    _MD_IMAGE_RE = re.compile(r'!\[.*?\]\(.*?\)')          # ![alt](url)
+    _MD_LINK_RE = re.compile(r'\[([^\]]*)\]\(.*?\)')       # [text](url) → text
+    _ANALYTICS_VIEW_RE = re.compile(
+        r'^\[([\d.]+[KkMmBb]?)\]\(https?://(?:x\.com|twitter\.com)/\w+/status/\d+/analytics\)$'
+    )
+    _TWEET_PERMALINK_MD_RE = re.compile(
+        r'^\[.*?\]\(https?://(?:x\.com|twitter\.com)/\w+/status/\d+\)$'
+    )
+    _PROFILE_LINK_MD_RE = re.compile(
+        r'^\[.*?\]\(https?://(?:x\.com|twitter\.com)/\w+/?(?:about|following|followers|verified_followers|photo|header_photo|media|with_replies)?/?\)$',
+        re.IGNORECASE,
+    )
+    _METRICS_ONLY_RE = re.compile(
+        r'^\d+[\.,]?\d*[kKmMbB]?$'  # bare number like "1.2K", "450"
+    )
+    _DATE_MD_RE = re.compile(
+        r'^\[(?:'
+        r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4}'
+        r'|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}'
+        r'|\d{4}-\d{2}-\d{2}'
+        r')\]\(https?://(?:x\.com|twitter\.com)/\w+/status/\d+\)$',
+        re.IGNORECASE,
+    )
+
     def _parse_jina_text(self, text: str, handle: str, topics: list,
                          cutoff: datetime) -> list:
-        """Parse Jina Reader plain-text output into article dicts.
+        """Parse Jina Reader Markdown output into article dicts.
 
-        The text typically contains tweet blocks separated by horizontal
-        rules or blank lines.  We look for date-like patterns to delimit
-        individual tweets.
+        Jina returns Markdown content for X profile pages.  Each tweet block
+        has a predictable structure::
+
+            [Avatar image](link)
+            [Author Name](profile_link)
+            [@handle](profile_link)
+            ·
+            [Jan 29, 2025](tweet_permalink)   ← date link → tweet_id here
+            Tweet body text …
+            [Card image](…)                   ← optional
+            [From source.com](…)              ← optional
+            1.2K                               ← replies
+            2.1K                               ← retweets
+            6.3K                               ← likes
+            [5.8M](…/analytics)                ← views (markdown link)
+
+        Previous implementation treated the whole Jina output as plain text,
+        which caused markdown links like ``[5.8M](…/analytics)`` and
+        ``[![Image…]](…)`` to leak into the title field.
+
+        The fix: split on tweet-permalink date-links (``[Date](/status/ID)``)
+        to delimit tweets, then strip markdown noise from content lines.
         """
         articles = []
 
-        # Split the text into chunks that look like individual tweets.
-        # Jina output for X profiles typically has tweet text followed by
-        # date/metadata.  We split on common delimiters.
-        # Pattern: look for date-like lines to split tweets
-        # Common patterns in Jina X output:
-        #   "Dec 10, 2024" or "2h" or full ISO dates
-        date_pattern = re.compile(
-            r'(?:'
-            r'\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}'  # ISO date
-            r'|'
-            r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4}'  # Month DD, YYYY
-            r'|'
-            r'\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}'  # DD Mon YYYY
-            r'|'
-            r'\d+[hmsd]\s*(?:ago)?'  # relative: 2h, 5m, 1d
-            r'|'
-            r'\d+\s+(?:second|minute|hour|day|week)s?\s+ago'  # 2 hours ago
-            r')',
-            re.IGNORECASE
-        )
-
-        # Also look for tweet URLs to extract tweet IDs
-        tweet_url_pattern = re.compile(
+        # ── Helper: extract tweet ID from a permalink URL ──────────
+        tweet_id_re = re.compile(
             r'https?://(?:x\.com|twitter\.com)/\w+/status/(\d+)'
         )
 
-        # Split text into blocks by double newlines or horizontal rules
+        # ── Helper: parse a date string from markdown link or plain text ──
+        date_inner_re = re.compile(
+            r'(?:'
+            r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4}'
+            r'|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}'
+            r'|\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}'
+            r'|\d+[hmsd]\s*(?:ago)?'
+            r'|\d+\s+(?:second|minute|hour|day|week)s?\s+ago'
+            r')',
+            re.IGNORECASE,
+        )
+
+        # ── Step 1: Split into tweet blocks ────────────────────────
+        # A tweet block starts with a markdown date-link line:
+        #   [Jan 29, 2025](https://x.com/handle/status/12345)
+        # Use that as the delimiter.
+        tweet_start_re = re.compile(
+            r'\['                              # opening bracket
+            r'(?:'
+            r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4}'
+            r'|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}'
+            r'|\d{4}-\d{2}-\d{2}'
+            r')'
+            r'\]'                              # closing bracket
+            r'\('                              # opening paren
+            r'https?://(?:x\.com|twitter\.com)/[^/]+/status/(\d+)'  # capture tweet_id
+            r'\)',                             # closing paren
+            re.IGNORECASE,
+        )
+
+        # Find all tweet-start positions
+        starts = list(tweet_start_re.finditer(text))
+        if not starts:
+            # Fallback: no markdown date-links found; try old-style parsing
+            return self._parse_jina_text_legacy(text, handle, topics, cutoff)
+
+        for idx, m in enumerate(starts):
+            # Block = from this match to the next match (or end of text)
+            block_end = starts[idx + 1].start() if idx + 1 < len(starts) else len(text)
+            block = text[m.start():block_end].strip()
+            tweet_id = m.group(1)
+
+            # Extract date from the markdown link text
+            date_text = m.group(0)
+            date_inner_match = date_inner_re.search(date_text)
+            if not date_inner_match:
+                continue
+            created_at = self._parse_jina_date(date_inner_match.group(0))
+            if not created_at:
+                continue
+            if created_at < cutoff:
+                continue
+
+            # ── Step 2: Clean content lines ─────────────────────────
+            lines = block.split('\n')
+            content_lines = []
+            for line in lines:
+                stripped = line.strip()
+                if not stripped:
+                    continue
+
+                # Skip the date-link header line itself
+                if stripped == m.group(0):
+                    continue
+
+                # Skip "·" separator
+                if stripped in ('·', '··', '...'):
+                    continue
+
+                # Skip profile links: [Name](profile), [@handle](profile)
+                if self._PROFILE_LINK_MD_RE.match(stripped):
+                    continue
+
+                # Skip avatar/image lines: [![Image…]](link) or ![Image](url)
+                if stripped.startswith('[![') or self._MD_IMAGE_RE.match(stripped):
+                    continue
+
+                # Skip analytics view-count: [4.2M](…/analytics)
+                if self._ANALYTICS_VIEW_RE.match(stripped):
+                    continue
+
+                # Skip tweet permalink in markdown: [Date](permalink)
+                if self._TWEET_PERMALINK_MD_RE.match(stripped):
+                    continue
+
+                # Skip bare metric numbers ("1.2K", "450", "9.6K")
+                if self._METRICS_ONLY_RE.match(stripped):
+                    continue
+
+                # Skip "Pinned" label
+                if stripped.lower() == 'pinned':
+                    continue
+
+                # Skip "Quote" section header
+                if stripped.lower() in ('quote', 'quoted'):
+                    continue
+
+                # Skip Jina page-level metadata leaks
+                if stripped.lower().startswith('published time:'):
+                    continue
+                if stripped.lower().startswith('url source:'):
+                    continue
+                if stripped.lower().startswith('markdown content:'):
+                    continue
+                if stripped.lower().startswith('title:'):
+                    continue
+
+                # Strip remaining markdown: inline images → empty, links → text
+                cleaned = self._MD_IMAGE_RE.sub('', stripped)
+                cleaned = self._MD_LINK_RE.sub(r'\1', cleaned)
+                cleaned = cleaned.strip()
+                if not cleaned:
+                    continue
+
+                content_lines.append(cleaned)
+
+            tweet_text = ' '.join(content_lines).strip()
+
+            # Skip if too short or looks like metadata only
+            if not tweet_text or len(tweet_text) < 5:
+                continue
+
+            # Skip retweets
+            if tweet_text.startswith('RT @'):
+                continue
+
+            # Strip embedded tweet URLs (t.co shorteners) from end of text
+            tweet_text = re.sub(r'\s*https?://t\.co/\S+$', '', tweet_text).strip()
+
+            link = f"https://x.com/{handle}/status/{tweet_id}"
+
+            articles.append({
+                "title": clean_tweet_text(tweet_text),
+                "link": link,
+                "date": created_at.isoformat(),
+                "topics": topics[:],
+                "metrics": {},  # Jina Reader doesn't provide structured metrics
+                "tweet_id": tweet_id,
+                "source_type": "twitter",
+                "source_name": f"@{handle}",
+            })
+
+        # Deduplicate by tweet_id
+        seen_ids = set()
+        unique = []
+        for a in articles:
+            tid = a.get("tweet_id", "")
+            if tid and tid in seen_ids:
+                continue
+            if tid:
+                seen_ids.add(tid)
+            unique.append(a)
+
+        return unique
+
+    def _parse_jina_text_legacy(self, text: str, handle: str, topics: list,
+                                cutoff: datetime) -> list:
+        """Legacy fallback parser for non-markdown Jina output.
+
+        Kept for backwards compatibility in case Jina returns plain text
+        (e.g. older Jina versions or different Accept headers).
+        """
+        articles = []
+        date_pattern = re.compile(
+            r'(?:'
+            r'\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}'
+            r'|'
+            r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4}'
+            r'|'
+            r'\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}'
+            r'|'
+            r'\d+[hmsd]\s*(?:ago)?'
+            r'|'
+            r'\d+\s+(?:second|minute|hour|day|week)s?\s+ago'
+            r')',
+            re.IGNORECASE
+        )
+        tweet_url_pattern = re.compile(
+            r'https?://(?:x\.com|twitter\.com)/\w+/status/(\d+)'
+        )
         blocks = re.split(r'\n-{3,}\n|\n\n+', text)
 
         for block in blocks:
             block = block.strip()
             if not block or len(block) < 10:
                 continue
-
-            # Skip navigation/header blocks
             if any(skip in block.lower() for skip in [
                 'sign in', 'log in', 'join today', 'cookies',
-                'twitter', 'x.com home', 'search', 'footer',
-                'javascript is disabled'
+                'x.com home', 'search', 'footer',
+                'javascript is disabled',
+                'published time:', 'url source:', 'markdown content:',
             ]):
                 continue
-
-            # Try to find a date in the block
             date_match = date_pattern.search(block)
             if not date_match:
                 continue
-
             date_str = date_match.group(0)
             created_at = self._parse_jina_date(date_str)
-            if not created_at:
+            if not created_at or created_at < cutoff:
                 continue
 
-            # Check cutoff
-            if created_at < cutoff:
-                continue
-
-            # Extract tweet text (everything that's not metadata)
-            # Remove date line and common metadata lines
             lines = block.split('\n')
             content_lines = []
             for line in lines:
                 stripped = line.strip()
-                # Skip lines that are purely metadata
                 if re.match(r'^\d+[\.,]?\d*[kKmMbB]?(\s*(likes?|reposts?|replies?|views?|bookmarks?|shares?))', stripped, re.IGNORECASE):
                     continue
                 if re.match(r'^(likes?|reposts?|replies?|views?|bookmarks?|shares?):?\s*\d+', stripped, re.IGNORECASE):
@@ -672,41 +872,49 @@ class JinaReaderBackend(TwitterBackend):
                 if tweet_url_pattern.fullmatch(stripped):
                     continue
                 if stripped.startswith('http://') or stripped.startswith('https://'):
-                    # Keep URLs that are part of tweet content but not tweet permalinks
                     if re.match(r'https?://(?:x\.com|twitter\.com)/\w+/status/\d+', stripped):
                         continue
                 if not stripped:
                     continue
-                content_lines.append(stripped)
+                # Skip Jina page-level metadata
+                if stripped.lower().startswith('published time:'):
+                    continue
+                if stripped.lower().startswith('url source:'):
+                    continue
+                if stripped.lower().startswith('markdown content:'):
+                    continue
+                if stripped.lower().startswith('title:'):
+                    continue
+                # Also strip markdown noise in legacy mode
+                cleaned = self._MD_IMAGE_RE.sub('', stripped)
+                cleaned = self._MD_LINK_RE.sub(r'\1', cleaned)
+                cleaned = cleaned.strip()
+                if not cleaned:
+                    continue
+                content_lines.append(cleaned)
 
             tweet_text = ' '.join(content_lines).strip()
             if not tweet_text or len(tweet_text) < 5:
                 continue
-
-            # Skip retweets
             if tweet_text.startswith('RT @'):
                 continue
 
-            # Try to extract tweet ID from URL in block
             tweet_id_match = tweet_url_pattern.search(block)
-            tweet_id = tweet_id_match.group(1) if tweet_id_match else None
-
-            # Build link
-            if tweet_id:
-                link = f"https://x.com/{handle}/status/{tweet_id}"
-            else:
-                link = f"https://x.com/{handle}"
+            tweet_id = tweet_id_match.group(1) if tweet_id_match else ""
+            link = f"https://x.com/{handle}/status/{tweet_id}" if tweet_id else f"https://x.com/{handle}"
 
             articles.append({
                 "title": clean_tweet_text(tweet_text),
                 "link": link,
                 "date": created_at.isoformat(),
                 "topics": topics[:],
-                "metrics": {},  # Jina Reader doesn't provide structured metrics
-                "tweet_id": tweet_id or "",
+                "metrics": {},
+                "tweet_id": tweet_id,
+                "source_type": "twitter",
+                "source_name": f"@{handle}",
             })
 
-        # Deduplicate by tweet_id if available, else by title similarity
+        # Deduplicate
         seen_ids = set()
         seen_titles = set()
         unique = []
@@ -861,6 +1069,8 @@ class GetXApiBackend(TwitterBackend):
                     "impression_count": tweet.get("viewCount", 0),
                 },
                 "tweet_id": tweet_id,
+                "source_type": "twitter",
+                "source_name": f"@{handle}",
             })
         return articles
 

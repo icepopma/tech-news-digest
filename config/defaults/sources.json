@@ -165,7 +165,7 @@
       "type": "rss",
       "name": "The Block",
       "url": "https://www.theblock.co/rss.xml",
-      "enabled": true,
+      "enabled": false,
       "priority": true,
       "topics": [
         "crypto"
@@ -360,7 +360,7 @@
       "type": "rss",
       "name": "机器之心 Synced",
       "url": "https://www.jiqizhixin.com/rss",
-      "enabled": true,
+      "enabled": false,
       "priority": true,
       "topics": [
         "llm",
@@ -748,7 +748,7 @@
       "type": "rss",
       "name": "Messari",
       "url": "https://messari.io/rss",
-      "enabled": true,
+      "enabled": false,
       "priority": false,
       "topics": [
         "crypto"
@@ -808,7 +808,7 @@
       "type": "rss",
       "name": "IEEE Spectrum",
       "url": "https://spectrum.ieee.org/feeds/feed.rss",
-      "enabled": true,
+      "enabled": false,
       "priority": false,
       "topics": [
         "frontier-tech"
@@ -1458,7 +1458,7 @@
       "type": "rss",
       "name": "Anthropic Engineering",
       "url": "https://www.anthropic.com/engineering/feed.xml",
-      "enabled": true,
+      "enabled": false,
       "priority": true,
       "topics": [
         "llm",
@@ -1472,7 +1472,7 @@
       "type": "rss",
       "name": "Anthropic Research",
       "url": "https://www.anthropic.com/research/rss.xml",
-      "enabled": true,
+      "enabled": false,
       "priority": true,
       "topics": [
         "llm",
@@ -1485,7 +1485,7 @@
       "type": "rss",
       "name": "OpenAI Research",
       "url": "https://openai.com/research/rss.xml",
-      "enabled": true,
+      "enabled": false,
       "priority": true,
       "topics": [
         "llm",
@@ -1497,7 +1497,7 @@
       "id": "meta-ai-rss",
       "type": "rss",
       "name": "Meta AI Blog",
-      "url": "https://ai.meta.com/blog/rss/",
+      "url": "https://about.fb.com/feed/",
       "enabled": true,
       "priority": true,
       "topics": [
@@ -1537,7 +1537,7 @@
       "type": "rss",
       "name": "Stanford HAI",
       "url": "https://hai.stanford.edu/news/rss",
-      "enabled": true,
+      "enabled": false,
       "priority": true,
       "topics": [
         "llm",
@@ -1550,7 +1550,7 @@
       "type": "rss",
       "name": "Cursor Blog",
       "url": "https://cursor.com/blog/rss.xml",
-      "enabled": true,
+      "enabled": false,
       "priority": true,
       "topics": [
         "ai-agent",
@@ -1587,7 +1587,7 @@
       "type": "rss",
       "name": "Scale AI Edge",
       "url": "https://scale.com/blog/feed",
-      "enabled": true,
+      "enabled": false,
       "priority": false,
       "topics": [
         "llm",
@@ -1600,7 +1600,7 @@
       "type": "rss",
       "name": "Epoch AI",
       "url": "https://epoch.ai/feed.xml",
-      "enabled": true,
+      "enabled": false,
       "priority": true,
       "topics": [
         "llm",
@@ -1612,7 +1612,7 @@
       "id": "latentspace-rss",
       "type": "rss",
       "name": "Latent Space",
-      "url": "https://latent.space/rss",
+      "url": "https://latent.space/feed",
       "enabled": true,
       "priority": true,
       "topics": [
@@ -1650,7 +1650,7 @@
       "id": "fastai-rss",
       "type": "rss",
       "name": "Fast.ai Blog",
-      "url": "https://www.fast.ai/feed.xml",
+      "url": "https://www.fast.ai/index.xml",
       "enabled": true,
       "priority": false,
       "topics": [
@@ -1675,7 +1675,7 @@
       "type": "rss",
       "name": "Every",
       "url": "https://every.to/feed",
-      "enabled": true,
+      "enabled": false,
       "priority": false,
       "topics": [
         "ai-agent",
@@ -1712,7 +1712,7 @@
       "id": "interconnects-rss",
       "type": "rss",
       "name": "Interconnects (Nathan Lambert)",
-      "url": "https://interconnects.ai/feed/",
+      "url": "https://www.interconnects.ai/feed",
       "enabled": true,
       "priority": true,
       "topics": [
@@ -1725,7 +1725,7 @@
       "id": "oneusefulthing-rss",
       "type": "rss",
       "name": "One Useful Thing (Ethan Mollick)",
-      "url": "https://oneusefulthing.org/feed/",
+      "url": "https://www.oneusefulthing.org/feed/",
       "enabled": true,
       "priority": true,
       "topics": [
@@ -1752,7 +1752,7 @@
       "type": "rss",
       "name": "Philipp Schmid",
       "url": "https://philschmid.de/feed.xml",
-      "enabled": true,
+      "enabled": false,
       "priority": false,
       "topics": [
         "llm"
@@ -1790,7 +1790,7 @@
       "type": "rss",
       "name": "The Rundown AI",
       "url": "https://therundown.ai/feed",
-      "enabled": true,
+      "enabled": false,
       "priority": true,
       "topics": [
         "llm",
@@ -1803,7 +1803,7 @@
       "type": "rss",
       "name": "Not Boring (Packy McCormick)",
       "url": "https://notboring.co/feed",
-      "enabled": true,
+      "enabled": false,
       "priority": false,
       "topics": [
         "frontier-tech"
@@ -1827,7 +1827,7 @@
       "id": "hamel-rss",
       "type": "rss",
       "name": "Hamel Husain",
-      "url": "https://hamel.dev/blog/index.xml",
+      "url": "https://hamel.dev/index.xml",
       "enabled": true,
       "priority": false,
       "topics": [
@@ -1877,7 +1877,7 @@
       "type": "rss",
       "name": "The Information",
       "url": "https://www.theinformation.com/feed",
-      "enabled": true,
+      "enabled": false,
       "priority": false,
       "topics": [
         "frontier-tech"
@@ -1888,7 +1888,7 @@
       "id": "tldr-rss",
       "type": "rss",
       "name": "TLDR Newsletter",
-      "url": "https://tldr.tech/feed",
+      "url": "https://tldr.tech/rss/tech",
       "enabled": true,
       "priority": false,
       "topics": [
@@ -1901,7 +1901,7 @@
       "type": "rss",
       "name": "AlphaXiv Trending",
       "url": "https://alphaxiv.org/trending.rss",
-      "enabled": true,
+      "enabled": false,
       "priority": true,
       "topics": [
         "llm"
@@ -1913,7 +1913,7 @@
       "type": "rss",
       "name": "Eugene Yan",
       "url": "https://eugeneyan.com/feed.xml",
-      "enabled": true,
+      "enabled": false,
       "priority": false,
       "topics": [
         "llm",
