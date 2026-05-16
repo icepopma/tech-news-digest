@@ -164,10 +164,32 @@ def parse_feed_feedparser(content: str, cutoff: datetime, feed_url: str) -> List
                             break
                             
             if title and link and pub_date and pub_date >= cutoff:
+                # Extract image from media_content, media_thumbnail, or enclosure
+                image = ""
+                for media in getattr(entry, 'media_content', []) + getattr(entry, 'media_thumbnail', []):
+                    if media.get('url') and ('image' in media.get('type', 'image') or media.get('medium') == 'image'):
+                        image = media['url']
+                        break
+                if not image:
+                    for enc in getattr(entry, 'enclosures', []):
+                        if 'image' in enc.get('type', ''):
+                            image = enc.get('href', '')
+                            break
+
+                # Extract description/snippet
+                desc = ""
+                for field in ['summary', 'description', 'subtitle']:
+                    val = entry.get(field, '')
+                    if val:
+                        desc = re.sub(r'<[^>]+>', '', val).strip()[:300]
+                        break
+
                 articles.append({
                     "title": title[:200],
                     "link": resolve_link(link, feed_url),
                     "date": pub_date.isoformat(),
+                    "image": image,
+                    "snippet": desc,
                 })
                 
     except Exception as e:

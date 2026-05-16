@@ -7,7 +7,7 @@
       "id": "simonwillison-rss",
       "type": "rss",
       "name": "Simon Willison",
-      "url": "https://simonwillison.net/atom/everything/",
+      "url": "https://simonwillison.net/atom/ai/",
       "enabled": true,
       "priority": true,
       "topics": [
@@ -15,7 +15,7 @@
         "ai-agent",
         "frontier-tech"
       ],
-      "note": "LLM/AI tooling, prolific blogger"
+      "note": "LLM/AI focused feed (not everything)"
     },
     {
       "id": "garymarcus-rss",
@@ -350,6 +350,8 @@
       "enabled": true,
       "priority": true,
       "topics": [
+        "llm",
+        "ai-agent",
         "frontier-tech",
         "crypto"
       ],
@@ -2086,6 +2088,56 @@
         "frontier-tech"
       ],
       "note": "openai.com/engineering returns 404"
+    },
+    {
+      "id": "huxiu-rss",
+      "type": "rss",
+      "name": "虎嗅",
+      "url": "https://www.huxiu.com/rss/0.xml",
+      "enabled": true,
+      "priority": true,
+      "topics": ["llm", "ai-agent", "frontier-tech", "crypto"],
+      "note": "中文商业科技媒体"
+    },
+    {
+      "id": "geekpark-rss",
+      "type": "rss",
+      "name": "极客公园",
+      "url": "https://www.geekpark.net/rss",
+      "enabled": true,
+      "priority": true,
+      "topics": ["llm", "ai-agent", "frontier-tech"],
+      "note": "中文科技创新媒体"
+    },
+    {
+      "id": "tmtpost-rss",
+      "type": "rss",
+      "name": "钛媒体",
+      "url": "https://www.tmtpost.com/rss.xml",
+      "enabled": true,
+      "priority": false,
+      "topics": ["llm", "ai-agent", "frontier-tech", "crypto"],
+      "note": "中文科技财经媒体"
+    },
+    {
+      "id": "leiphone-rss",
+      "type": "rss",
+      "name": "雷锋网",
+      "url": "https://www.leiphone.com/feed",
+      "enabled": true,
+      "priority": true,
+      "topics": ["llm", "ai-agent", "frontier-tech"],
+      "note": "中文AI/科技媒体"
+    },
+    {
+      "id": "deeptech-rss",
+      "type": "jina",
+      "name": "DeepTech深科技",
+      "url": "https://www.deeptech.cn",
+      "enabled": true,
+      "priority": true,
+      "topics": ["llm", "frontier-tech"],
+      "note": "中文前沿科技媒体"
     }
   ]
 }

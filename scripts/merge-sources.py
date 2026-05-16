@@ -285,6 +285,81 @@ def apply_domain_limits(articles: List[Dict[str, Any]], max_per_domain: int = 3)
     return result
 
 
+# AI-relevance keywords for filtering non-AI content
+_AI_KEYWORDS_EN = re.compile(
+    r'\b(?:ai\b|artificial\s+intelligence|gpt|llm|claude|openai|gemini|copilot|anthropic|'
+    r'transformer|agi|machine\s+learning|deep\s+learning|neural\s+net|diffusion|'
+    r'chatgpt|chatbot|large\s+language|foundation\s+model|generative|'
+    r'autonomous\s+driving|self.driving|robotics|robot\b|'
+    r'natural\s+language|computer\s+vision|reinforcement\s+learning|'
+    r'stable\s+diffusion|midjourney|dall-e|sora|whisper|'
+    r'mcp\b|agentic|reasoning\s+model|o1\b|o3\b|o4\b|'
+    r'inference\b|fine.tun|rlhf|embeddings?\b|tokeniz|'
+    r'nvidia|cuda|gpu\b|tpu\b|chip\b|semiconductor|tensor|'
+    r'model\s+weight|parameter\s+model|image\s+model|video\s+model|'
+    r'open\s+weight|open\s+source\s+model|pretrain|post.train|'
+    r'spatial\s+intelligence|embodied|world\s+model|'
+    r'token\b|scaling\s+law|frontier\s+model|'
+    r'intelligence\b|cognitive\b|synthetic\s+data|'
+    r'\bmodel\b|jensen|huang|h100|h200|b200|blackwell|'
+    r'capex\b|data\s+center|datacenter|compute\b|cloud\s+spend|'
+    r'weight\b|checkpoint\b|context\s+window|context\s+length|'
+    r'param\w*\s+(?:model|count)|image\s+gen|video\s+gen|'
+    r'mistral|deepseek|llama\b|qwen\b|yi\b|chatglm|minimax|senseme|senseTime|'
+    r'moonshot|zhipu|baichuan|stepfun|01\.ai|bytedance.*model|'
+    r'text.to.(?:image|video|audio|speech|code)|multimodal\b|'
+    r'data\s*center\b|agent\b)',
+    re.IGNORECASE,
+)
+# AI company/brand names in source handles — if source is an AI company, keep all its articles
+_AI_SOURCE_RE = re.compile(
+    r'(?:\bai\b|_ai$|llm|gpt|openai|anthropic|deepseek|minimax|sensetime|stepfun|'
+    r'zhipu|moonshot|baichuan|01\.ai|silicon.?flow|karpathy|'
+    r'semi.?analy|scale\.ai|xai\b|character\.ai|cohere|mistral|'
+    r'runway|cursor\b|stability|hugging.?face|replicate|together\.ai|'
+    r'perplexity)',
+    re.IGNORECASE,
+)
+_AI_KEYWORDS_ZH = re.compile(
+    r'(?:人工智能|大模型|智能体|机器学习|深度学习|算力|GPU|'
+    r'AI芯片|自动驾驶|机器人|生成式|'
+    r'智能驾驶|智驾|大语言|语言模型|'
+    r'多模态|认知智能|具身智能|'
+    r'推理模型|思维链|提示词|prompt|token|Token|'
+    r'文生图|文生视频|文生代码|'
+    r'知识图谱|向量数据库|RAG\b|'
+    r'硅基|类脑|仿生|'
+    r'开源模型|闭源模型|参数量|千亿|万亿|'
+    r'微调|对齐|幻觉|涌现|'
+    r'模型权重|开源权重|预训练|后训练|'
+    r'世界模型|具身|合成数据|'
+    r'智算|超算|推理卡|训练卡|'
+    r'AI\b|训练.*AI)',
+)
+
+
+def filter_ai_relevance(articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Filter out articles not related to AI/ML."""
+    if not articles:
+        return articles
+
+    kept = []
+    for art in articles:
+        source_name = f"{art.get('source_name', '')} {art.get('display_name', '')}"
+        # AI company sources — always keep
+        if _AI_SOURCE_RE.search(source_name):
+            kept.append(art)
+            continue
+        text = f"{art.get('title', '')} {art.get('snippet', '')}"
+        if _AI_KEYWORDS_EN.search(text) or _AI_KEYWORDS_ZH.search(text):
+            kept.append(art)
+
+    removed = len(articles) - len(kept)
+    if removed:
+        logging.info(f"AI relevance filter: removed {removed} non-AI articles ({len(articles)} → {len(kept)})")
+    return kept
+
+
 def merge_article_sources(articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Merge articles that appear from multiple sources."""
     if not articles:
@@ -382,6 +457,137 @@ def apply_previous_digest_penalty(articles: List[Dict[str, Any]],
             penalized_count += 1
             
     logging.info(f"Applied previous digest penalty to {penalized_count} articles")
+    return articles
+
+
+def _is_fallback_date(date_str: str) -> bool:
+    """Check if a date looks like a fallback (datetime.now()) rather than a real pub date."""
+    if not date_str:
+        return True
+    try:
+        dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+        # Real dates usually have seconds > 0 or non-zero microseconds with variety
+        # Fallback dates from datetime.now() have monotonic microseconds
+        return dt.second == 0 or (dt.microsecond > 100000 and dt.microsecond < 900000)
+    except Exception:
+        return True
+
+
+_DATE_META_PATTERNS = [
+    re.compile(r'"article:published_time"\s+content="([^"]+)"'),
+    re.compile(r'"datePublished"\s*:\s*"([^"]+)"'),
+    re.compile(r'"publishDate"\s*:\s*"([^"]+)"'),
+    re.compile(r'property="og:article:published_time"\s+content="([^"]+)"'),
+    re.compile(r'name="citation_date"\s+content="([^"]+)"'),
+    re.compile(r'name="DC.date\.issued"\s+content="([^"]+)"'),
+    re.compile(r'name="date"\s+content="([^"]+)"'),
+    re.compile(r'<time[^>]*datetime="([^"]+)"'),
+    re.compile(r'"createdAt"\s*:\s*"([^"]+)"'),
+]
+
+
+def enrich_dates(articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Fetch metadata for articles with fallback dates to get real publish times."""
+    import urllib.request
+    import urllib.error
+
+    # Detect articles with suspicious dates (all clustered within same minute)
+    if len(articles) < 2:
+        return articles
+
+    # Collect unique dates to detect fallback clustering
+    date_counts: Dict[str, int] = {}
+    for art in articles:
+        d = art.get("date", "")
+        # Round to minute for clustering
+        try:
+            dt = datetime.fromisoformat(d.replace('Z', '+00:00'))
+            minute_key = dt.strftime("%Y-%m-%dT%H:%M")
+            date_counts[minute_key] = date_counts.get(minute_key, 0) + 1
+        except Exception:
+            pass
+
+    # If >60% of articles share the same minute, they're likely fallback dates
+    fallback_minute = None
+    for minute_key, count in date_counts.items():
+        if count > len(articles) * 0.3:
+            fallback_minute = minute_key
+            break
+
+    if not fallback_minute:
+        return articles  # No fallback dates detected
+
+    needs_enrichment = []
+    for i, art in enumerate(articles):
+        d = art.get("date", "")
+        try:
+            dt = datetime.fromisoformat(d.replace('Z', '+00:00'))
+            if dt.strftime("%Y-%m-%dT%H:%M") == fallback_minute:
+                needs_enrichment.append(i)
+        except Exception:
+            needs_enrichment.append(i)
+
+    if not needs_enrichment:
+        return articles
+
+    logging.info(f"Enriching dates for {len(needs_enrichment)}/{len(articles)} articles with fallback dates")
+
+    enriched = 0
+    for idx in needs_enrichment[:50]:  # Limit to 50 to avoid rate limiting
+        art = articles[idx]
+        url = art.get("link", "")
+        if not url:
+            continue
+
+        try:
+            # Try fetching just the first 8KB of the page to get <head> metadata
+            req = urllib.request.Request(url, headers={
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml",
+            }, method="GET")
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                # Read in chunks, stop after </head> or 8KB
+                chunk = b""
+                for _ in range(8):
+                    c = resp.read(1024)
+                    if not c:
+                        break
+                    chunk += c
+                    if b"</head>" in chunk:
+                        break
+
+                head_html = chunk.decode("utf-8", errors="ignore")
+
+                # Extract date from meta tags
+                for pattern in _DATE_META_PATTERNS:
+                    m = pattern.search(head_html)
+                    if m:
+                        date_val = m.group(1)
+                        # Validate it's a real date
+                        try:
+                            parsed = datetime.fromisoformat(date_val.replace('Z', '+00:00'))
+                            if parsed.year >= 2020:
+                                articles[idx]["date"] = parsed.isoformat()
+                                enriched += 1
+                                break
+                        except (ValueError, TypeError):
+                            # Try common date formats
+                            for fmt in ["%Y-%m-%d", "%Y-%m-%dT%H:%M", "%B %d, %Y", "%b %d, %Y"]:
+                                try:
+                                    parsed = datetime.strptime(date_val.strip(), fmt).replace(tzinfo=timezone.utc)
+                                    if parsed.year >= 2020:
+                                        articles[idx]["date"] = parsed.isoformat()
+                                        enriched += 1
+                                        break
+                                except ValueError:
+                                    continue
+                            else:
+                                continue
+                            break
+        except Exception:
+            continue
+
+    logging.info(f"Date enrichment: {enriched}/{len(needs_enrichment)} articles updated")
     return articles
 
 
@@ -519,6 +725,11 @@ Examples:
         "--verbose", "-v",
         action="store_true",
         help="Enable verbose logging"
+    )
+    parser.add_argument(
+        "--no-domain-limit",
+        action="store_true",
+        help="Skip per-domain article limits (for monitor streams)"
     )
     
     args = parser.parse_args()
@@ -664,17 +875,24 @@ Examples:
         
         # Deduplicate articles
         all_articles = deduplicate_articles(all_articles)
-        
+
+        # Filter out non-AI articles
+        all_articles = filter_ai_relevance(all_articles)
+
+        # Enrich missing dates by fetching article metadata
+        all_articles = enrich_dates(all_articles)
+
         # Group by topics (with cross-topic deduplication)
         topic_groups = group_by_topics(all_articles, dedup_across_topics=True)
         
         # Apply per-topic domain limits (max 3 articles per domain per topic)
-        for topic in topic_groups:
-            before = len(topic_groups[topic])
-            topic_groups[topic] = apply_domain_limits(topic_groups[topic])
-            after = len(topic_groups[topic])
-            if before != after:
-                logger.info(f"Domain limits ({topic}): {before} → {after}")
+        if not args.no_domain_limit:
+            for topic in topic_groups:
+                before = len(topic_groups[topic])
+                topic_groups[topic] = apply_domain_limits(topic_groups[topic])
+                after = len(topic_groups[topic])
+                if before != after:
+                    logger.info(f"Domain limits ({topic}): {before} → {after}")
         
         # Recalculate total after domain limits
         total_after_domain_limits = sum(len(articles) for articles in topic_groups.values())

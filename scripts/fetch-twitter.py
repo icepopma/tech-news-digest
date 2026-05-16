@@ -301,6 +301,8 @@ class OfficialBackend(TwitterBackend):
                             "tweet_id": tweet['id'],
                             "source_type": "twitter",
                             "source_name": f"@{handle}",
+                            "image": "",
+                            "snippet": text[:200],
                         })
 
                 return self._make_result(source, articles, attempt)
@@ -401,6 +403,8 @@ class TwitterApiIoBackend(TwitterBackend):
                 "tweet_id": tweet_id,
                 "source_type": "twitter",
                 "source_name": f"@{handle}",
+                "image": "",
+                "snippet": text[:200],
             })
         return articles
 
@@ -714,6 +718,7 @@ class JinaReaderBackend(TwitterBackend):
             # ── Step 2: Clean content lines ─────────────────────────
             lines = block.split('\n')
             content_lines = []
+            tweet_image = ""
             for line in lines:
                 stripped = line.strip()
                 if not stripped:
@@ -732,7 +737,12 @@ class JinaReaderBackend(TwitterBackend):
                     continue
 
                 # Skip avatar/image lines: [![Image…]](link) or ![Image](url)
+                # Extract image URL before skipping
                 if stripped.startswith('[![') or self._MD_IMAGE_RE.match(stripped):
+                    if not tweet_image:
+                        img_match = re.search(r'\((https?://[^\s\)]+)\)', stripped)
+                        if img_match:
+                            tweet_image = img_match.group(1)
                     continue
 
                 # Skip analytics view-count: [4.2M](…/analytics)
@@ -798,6 +808,8 @@ class JinaReaderBackend(TwitterBackend):
                 "tweet_id": tweet_id,
                 "source_type": "twitter",
                 "source_name": f"@{handle}",
+                "image": tweet_image,
+                "snippet": tweet_text[:200],
             })
 
         # Deduplicate by tweet_id
@@ -912,6 +924,8 @@ class JinaReaderBackend(TwitterBackend):
                 "tweet_id": tweet_id,
                 "source_type": "twitter",
                 "source_name": f"@{handle}",
+                "image": "",
+                "snippet": tweet_text[:200],
             })
 
         # Deduplicate
@@ -1071,6 +1085,8 @@ class GetXApiBackend(TwitterBackend):
                 "tweet_id": tweet_id,
                 "source_type": "twitter",
                 "source_name": f"@{handle}",
+                "image": "",
+                "snippet": text[:200],
             })
         return articles
 

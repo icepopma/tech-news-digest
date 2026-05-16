@@ -295,9 +295,35 @@ def parse_jina_markdown(content: str, source_url: str) -> List[Dict[str, Any]]:
         if url_key in seen_urls:
             continue
         seen_urls.add(url_key)
-        
+
+        # Extract image from markdown near this link
+        image = ""
+        img_re = re.compile(r'!\[[^\]]*\]\((https?://[^\s\)]+)\)')
+        search_start = max(0, match.start() - 500)
+        img_match = img_re.search(content[search_start:match.end()])
+        if img_match:
+            image = img_match.group(1)
+
+        # Extract snippet: text content around this link
+        snippet = ""
+        context_start = max(0, match.start() - 200)
+        context_chunk = re.sub(r'!\[[^\]]*\]\([^)]+\)', '', content[context_start:match.start()])
+        context_chunk = re.sub(r'\[([^\]]*)\]\([^)]+\)', r'\1', context_chunk)
+        context_chunk = re.sub(r'[#*`\[\]]', '', context_chunk).strip()
+        if context_chunk:
+            snippet = context_chunk[-200:].strip()
+
         # Parse date
         date_str = None
+        # Try extracting date from article URL path (common pattern: /2026/05/14/ or /2026-05-14-)
+        url_date = re.search(r'/(\d{4})/(\d{2})/(\d{2})/', url) or re.search(r'(\d{4})-(\d{2})-(\d{2})', url)
+        if url_date:
+            try:
+                from datetime import datetime as _dt
+                date_str = _dt(int(url_date.group(1)), int(url_date.group(2)), int(url_date.group(3)),
+                               tzinfo=timezone.utc).isoformat()
+            except ValueError:
+                pass
         if article_date:
             try:
                 dt = datetime.strptime(article_date.replace(',', ''), '%b %d %Y')
@@ -309,6 +335,8 @@ def parse_jina_markdown(content: str, source_url: str) -> List[Dict[str, Any]]:
             "title": title[:200],
             "link": url,
             "date": date_str or datetime.now(timezone.utc).isoformat(),
+            "image": image,
+            "snippet": snippet[:300],
         })
         
         if len(articles) >= MAX_ARTICLES_PER_SOURCE:

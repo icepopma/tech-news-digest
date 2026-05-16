@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 SCRIPTS_DIR = Path(__file__).parent
-DEFAULT_TIMEOUT = 360  # per-step timeout in seconds (Jina Twitter needs ~3-4min for 96 accounts)
+DEFAULT_TIMEOUT = 1200  # per-step timeout in seconds (105 Twitter accounts via Jina ~9min)
 
 
 def setup_logging(verbose: bool) -> logging.Logger:
@@ -137,6 +137,7 @@ def main() -> int:
     parser.add_argument("--only", type=str, default="", help="Comma-separated list of steps to run (rss,twitter,github,trending,reddit,web). Others are skipped.")
     parser.add_argument("--reuse-dir", type=Path, default=None, help="Reuse existing intermediate directory instead of creating new one")
     parser.add_argument("--debug", action="store_true", help="Keep intermediate fetch outputs (rss.json, twitter.json, etc.) alongside final output")
+    parser.add_argument("--no-domain-limit", action="store_true", help="Skip per-domain article limits in merge (for monitor streams)")
 
     args = parser.parse_args()
     logger = setup_logging(args.verbose)
@@ -239,6 +240,8 @@ def main() -> int:
     if args.archive_dir:
         merge_args += ["--archive-dir", str(args.archive_dir)]
     merge_args += ["--output", str(args.output)]
+    if args.no_domain_limit:
+        merge_args += ["--no-domain-limit"]
 
     merge_result = run_step("Merge", "merge-sources.py", merge_args, args.output, timeout=60, force=False)
 
